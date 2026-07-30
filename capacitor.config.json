@@ -1,0 +1,9 @@
+{
+  "appId": "com.familyplan.app",
+  "appName": "FAMILY PLAN",
+  "webDir": "www",
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "https"
+  }
+}

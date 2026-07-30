@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FAMILY PLAN</string>
+    <string name="title_activity_main">FAMILY PLAN</string>
+    <string name="package_name">com.familyplan.app</string>
+    <string name="custom_url_scheme">com.familyplan.app</string>
+</resources>
