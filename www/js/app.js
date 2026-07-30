@@ -3,23 +3,32 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function saveSession(user) {
-  localStorage.setItem('fp_session', JSON.stringify(user));
-}
-
-function getSession() {
+async function saveSession(user) {
+  var data = JSON.stringify(user);
+  localStorage.setItem('fp_session', data);
   try {
-    const raw = localStorage.getItem('fp_session');
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+    await Capacitor.Plugins.Preferences.set({ key: 'fp_session', value: data });
+  } catch {}
 }
 
-function clearSession() {
+async function getSession() {
+  try {
+    var v = await Capacitor.Plugins.Preferences.get({ key: 'fp_session' });
+    if (v && v.value) return JSON.parse(v.value);
+  } catch {}
+  var raw = localStorage.getItem('fp_session');
+  try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+
+async function clearSession() {
   localStorage.removeItem('fp_session');
+  try {
+    await Capacitor.Plugins.Preferences.remove({ key: 'fp_session' });
+  } catch {}
 }
 
 function isLoggedIn() {
-  return !!getSession();
+  return !!localStorage.getItem('fp_session');
 }
 
 function mapSchedule(s) {

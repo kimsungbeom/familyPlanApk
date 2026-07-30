@@ -10,7 +10,7 @@
     return key;
   }
 
-  if (path === '' || path === 'index.html' || path === 'index') {
+  if (path === 'login.html' || path === 'login' || path === '') {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
       loginForm.addEventListener('submit', async (e) => {
@@ -30,7 +30,7 @@
             showError(null, 'ID 또는 비밀번호가 일치하지 않습니다.');
             return;
           }
-          saveSession({ id: user.id, name: user.name, familyId: user.family_id });
+          await saveSession({ id: user.id, name: user.name, familyId: user.family_id });
           window.location.href = 'dashboard.html';
         } catch (err) {
           showError(null, '네트워크 오류: ' + (err.message || '연결 실패'));
@@ -105,7 +105,7 @@
           if (mErr) { showError(null, '멤버 등록 실패: ' + mErr.message); return; }
 
           showSuccess(null, `회원가입 완료! 참여 키: <strong>${joinKey}</strong> (가족원에게 공유하세요)`);
-          setTimeout(() => { window.location.href = 'index.html'; }, 2500);
+          setTimeout(() => { window.location.href = 'login.html'; }, 2500);
           return;
         }
 
@@ -127,7 +127,7 @@
           if (mErr) { showError(null, '멤버 등록 실패: ' + mErr.message); return; }
 
           showSuccess(null, '회원가입 완료! 로그인 페이지로 이동합니다.');
-          setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+          setTimeout(() => { window.location.href = 'login.html'; }, 2000);
           return;
         }
 

@@ -1,6 +1,6 @@
-(function() {
-  const session = getSession();
-  if (!session) { window.location.href = 'index.html'; return; }
+(async function() {
+  var session = await getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
 
   const changePassForm = document.getElementById('changePassForm');
   const deleteAccountBtn = document.getElementById('deleteAccountBtn');
@@ -15,9 +15,9 @@
         <a href="mypage.html">마이페이지</a>
         <button id="mypageLogoutBtn">로그아웃</button>
       </div></div>`;
-    document.getElementById('mypageLogoutBtn').addEventListener('click', () => {
-      clearSession();
-      window.location.href = 'index.html';
+    document.getElementById('mypageLogoutBtn').addEventListener('click', async () => {
+      await clearSession();
+      window.location.href = 'login.html';
     });
   }
 
@@ -66,9 +66,9 @@
         }
       }
       await sb.from('users').delete().eq('id', session.id);
-      clearSession();
+      await clearSession();
       alert('회원 탈퇴가 완료되었습니다.');
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     });
   }
 })();

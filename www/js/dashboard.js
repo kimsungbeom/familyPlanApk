@@ -1,6 +1,6 @@
-(function() {
-  const session = getSession();
-  if (!session) { window.location.href = 'index.html'; return; }
+(async function() {
+  var session = await getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
 
   let currentView = 'day';
   let currentDate = new Date();
@@ -46,9 +46,9 @@
           <a href="mypage.html">마이페이지</a>
           <button id="logoutBtn">로그아웃</button>
         </div></div>`;
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        clearSession();
-        window.location.href = 'index.html';
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await clearSession();
+        window.location.href = 'login.html';
       });
     }
 
