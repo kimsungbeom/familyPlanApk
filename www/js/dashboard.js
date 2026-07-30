@@ -125,14 +125,18 @@
     document.getElementById('joinKeyDisplay').textContent = family.join_key || '----';
     renderFamilyPanel(family, kickDelegates);
 
-    filterUser.innerHTML = '<option value="">전체 대상자</option>';
+    filterUser.innerHTML = '';
     members.forEach(m => {
       const opt = document.createElement('option');
       opt.value = m.id;
       opt.textContent = m.name;
       filterUser.appendChild(opt);
     });
-    filterUser.value = currentUserId;
+    if (members.length <= 3) {
+      members.forEach(m => { filterUser.querySelector(`option[value="${m.id}"]`).selected = true; });
+    } else {
+      filterUser.querySelector(`option[value="${currentUserId}"]`).selected = true;
+    }
   }
 
   function renderFamilyPanel(family, kickDelegates) {
@@ -225,14 +229,16 @@
 
   async function loadSchedules() {
     if (!currentFamilyId) { allSchedules = []; renderScheduleList(); return; }
-    const userId = filterUser.value;
+    const selectedUsers = Array.from(filterUser.selectedOptions).map(o => o.value);
     const q = searchInput.value.trim();
     const dFrom = filterDateFrom.value;
     const dTo = filterDateTo.value;
     const status = filterStatus.value;
 
     let query = sb.from('schedules').select('*').eq('family_id', currentFamilyId);
-    if (userId) query = query.eq('target_user_id', userId);
+    if (selectedUsers.length > 0 && selectedUsers.length < members.length) {
+      query = query.in('target_user_id', selectedUsers);
+    }
     if (dFrom) query = query.gte('scheduled_from', dFrom.replace(/-/g,'')+'0000');
     if (dTo) query = query.lte('scheduled_to', dTo.replace(/-/g,'')+'2359');
     if (q) query = query.or(`title.ilike.%${q}%,requester.ilike.%${q}%`);
@@ -361,12 +367,10 @@
     const accent = accentColor();
     const personData = members.map(m => {
       const scheds = schedules.filter(s => s.targetUserId === m.id);
-      return {
-        name: m.name,
-        total: scheds.length,
-        completed: scheds.filter(s => s.completed).length,
-        avgProgress: scheds.length > 0 ? Math.round(scheds.reduce((sum, s) => sum + s.progress, 0) / scheds.length) : 0
-      };
+      const completed = scheds.filter(s => s.completed).length;
+      const inProgress = scheds.filter(s => !s.completed && s.progress > 0).length;
+      const notStarted = scheds.length - completed - inProgress;
+      return { name: m.name, completed, inProgress, notStarted, total: scheds.length };
     });
 
     const names = personData.map(p => p.name);
@@ -384,24 +388,15 @@
         data: {
           labels: names,
           datasets: [
-            { label: '전체', data: personData.map(p => p.total), backgroundColor: '#e0e0e0', borderRadius: 4 },
-            { label: '완료', data: personData.map(p => p.completed), backgroundColor: accent, borderRadius: 4 }
+            { label: '완료', data: personData.map(p => p.completed), backgroundColor: accent, borderRadius: 0 },
+            { label: '진행중', data: personData.map(p => p.inProgress), backgroundColor: '#3498db', borderRadius: 0 },
+            { label: '미시작', data: personData.map(p => p.notStarted), backgroundColor: '#e0e0e0', borderRadius: 0 }
           ]
         },
         options: {
           responsive: true,
-          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } },
-            tooltip: {
-              callbacks: {
-                afterBody: (ctx) => {
-                  const i = ctx[0].dataIndex;
-                  return '진행률: ' + personData[i].avgProgress + '%';
-                }
-              }
-            }
-          }
+          scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } },
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } }
         }
       });
     }
@@ -425,6 +420,25 @@
     inlineTarget.innerHTML = members.map(m => `<option value="${m.id}" ${m.id === currentUserId ? 'selected' : ''}>${m.name}</option>`).join('');
     document.getElementById('inlineDateFrom').value = getToday();
 
+    (async function loadDefaultTime() {
+      const today = getToday().replace(/-/g,'');
+      const { data } = await sb.from('schedules').select('scheduled_to')
+        .eq('family_id', currentFamilyId).eq('target_user_id', currentUserId)
+        .gte('scheduled_from', today+'0000').lte('scheduled_from', today+'2359');
+      let fromTime;
+      if (data && data.length > 0) {
+        const maxTo = data.reduce((max, s) => s.scheduled_to > max ? s.scheduled_to : max, '');
+        fromTime = maxTo.substring(8,10) + ':' + maxTo.substring(10,12);
+      } else {
+        const now = new Date();
+        fromTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      }
+      document.getElementById('inlineTimeFrom').value = fromTime;
+      const [h, m] = fromTime.split(':');
+      const toDate = new Date(2026,0,1,parseInt(h),parseInt(m)+30);
+      document.getElementById('inlineTimeTo').value = String(toDate.getHours()).padStart(2,'0')+':'+String(toDate.getMinutes()).padStart(2,'0');
+    })();
+
     document.getElementById('inlineProgress').addEventListener('input', (e) => {
       document.getElementById('inlineProgressVal').textContent = e.target.value + '%';
     });
@@ -433,10 +447,18 @@
       document.getElementById('inlineRecurEnd').style.display = e.target.value ? 'inline' : 'none';
     });
 
+    document.getElementById('inlineDateFrom').addEventListener('change', () => {
+      document.getElementById('inlineDateTo').value = document.getElementById('inlineDateFrom').value;
+    });
+    document.getElementById('inlineDateTo').value = document.getElementById('inlineDateFrom').value;
+
     document.getElementById('toggleDetailBtn').addEventListener('click', () => {
       const detail = document.getElementById('inlineDetail');
       const btn = document.getElementById('toggleDetailBtn');
-      if (detail.style.display === 'none') { detail.style.display = 'block'; btn.textContent = '\u25B2'; }
+      if (detail.style.display === 'none') {
+        detail.style.display = 'block'; btn.textContent = '\u25B2';
+        document.getElementById('inlineDateTo').value = document.getElementById('inlineDateFrom').value;
+      }
       else { detail.style.display = 'none'; btn.textContent = '\u25BC'; }
     });
 
@@ -473,8 +495,12 @@
   function fmt24(d, t) { return d.replace(/-/g, '') + (t || '0000').replace(':', ''); }
   function fmtDisplay24(v) { if (!v || v.length < 12) return ''; return v.substring(0,4)+'-'+v.substring(4,6)+'-'+v.substring(6,8)+' '+v.substring(8,10)+':'+v.substring(10,12); }
   function buildScheduleRow(title, target, requester, df, tf, dt, tt, progress, completed, recurring, recurEnd) {
-    const sf = fmt24(df || getToday(), tf || '0000');
-    const st = fmt24(dt || df || getToday(), tt || '2359');
+    const now = new Date();
+    const defaultFrom = String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
+    const toDate = new Date(now.getTime() + 30 * 60000);
+    const defaultTo = String(toDate.getHours()).padStart(2,'0') + String(toDate.getMinutes()).padStart(2,'0');
+    const sf = fmt24(df || getToday(), tf || defaultFrom);
+    const st = fmt24(dt || df || getToday(), tt || defaultTo);
     return {
       title, target_user_id: target, requester: requester || '',
       scheduled_from: sf, scheduled_to: st,
@@ -489,6 +515,9 @@
   function setupModal() {
     document.getElementById('modalCancelBtn').addEventListener('click', () => { modal.style.display = 'none'; });
     modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+    document.getElementById('schedDateFrom').addEventListener('change', () => {
+      document.getElementById('schedDateTo').value = document.getElementById('schedDateFrom').value;
+    });
     document.getElementById('schedProgress').addEventListener('input', (e) => {
       document.getElementById('schedProgressVal').textContent = e.target.value + '%';
     });
@@ -544,6 +573,7 @@
       document.getElementById('editScheduleId').value = '';
       document.getElementById('scheduleForm').reset();
       document.getElementById('schedDateFrom').value = getToday();
+      document.getElementById('schedDateTo').value = getToday();
       document.getElementById('schedProgress').value = 0;
       document.getElementById('schedProgressVal').textContent = '0%';
       document.getElementById('schedCompleted').checked = false;
