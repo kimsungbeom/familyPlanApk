@@ -10,10 +10,9 @@
     header.innerHTML = `<div class="header" style="margin-bottom:0">
       <h1>FAMILY PLAN</h1>
       <div class="header-nav">
-        <span style="font-weight:700;font-size:var(--font-size-lg)">${session.name}님</span>
-        <a href="dashboard.html">대시보드</a>
-        <a href="mypage.html">마이페이지</a>
-        <button id="mypageLogoutBtn">로그아웃</button>
+        <a href="dashboard.html" style="font-weight:700;font-size:var(--font-size-lg);text-decoration:none;color:var(--color-text-primary)">${session.name}님</a>
+        <a href="mypage.html">MY</a>
+        <button id="mypageLogoutBtn">LogOut</button>
       </div></div>`;
     document.getElementById('mypageLogoutBtn').addEventListener('click', async () => {
       await clearSession();
