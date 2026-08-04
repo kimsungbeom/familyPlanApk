@@ -68,26 +68,25 @@ a:hover { text-decoration: underline; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: nowrap;
 }
 
 .header h1 {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 800;
   color: var(--color-accent);
-  white-space: nowrap;
 }
 
-.header-nav { display: flex; gap: 6px; align-items: center; flex-shrink: 0; white-space: nowrap; }
+.header-nav { display: flex; gap: 4px; align-items: center; flex-shrink: 0; white-space: nowrap; }
 .header-nav a, .header-nav button {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: var(--radius-xs);
   font-family: var(--font-family-primary);
+  white-space: nowrap;
 }
 .header-nav a:hover, .header-nav button:hover {
   color: var(--color-text-primary);

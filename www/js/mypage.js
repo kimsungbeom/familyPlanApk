@@ -9,9 +9,10 @@
   if (header) {
     header.innerHTML = `<div class="header" style="margin-bottom:0">
       <h1>FAMILY PLAN</h1>
-      <div class="header-nav">
-        <a href="dashboard.html" style="font-weight:700;font-size:var(--font-size-lg);text-decoration:none;color:var(--color-text-primary)">${session.name}님</a>
-        <a href="mypage.html">MY</a>
+        <div class="header-nav">
+          <a href="dashboard.html">메인</a>
+          <a href="timetable.html">시간표</a>
+          <a href="mypage.html" style="font-weight:700;color:var(--color-accent)">MY</a>
         <button id="mypageLogoutBtn">LogOut</button>
       </div></div>`;
     document.getElementById('mypageLogoutBtn').addEventListener('click', async () => {

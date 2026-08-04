@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAMILY PLAN - 시간표</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .tt-container { max-width: 700px; margin: 0 auto; padding: 12px; }
+  .tt-nav { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; }
+  .tt-nav button { padding:4px 12px; border:1px solid var(--color-border-muted); border-radius:var(--radius-xs); background:var(--color-surface-base); font-family:var(--font-family-primary); font-size:var(--font-size-sm); cursor:pointer; }
+  .tt-nav .tt-date { font-size:var(--font-size-2xl); font-weight:800; min-width:140px; text-align:center; }
+  .tt-style-tabs { display:flex; gap:4px; justify-content:center; margin-bottom:14px; }
+  .tt-style-tabs button { padding:4px 14px; border:1px solid var(--color-border-muted); border-radius:var(--radius-md); background:var(--color-surface-base); font-family:var(--font-family-primary); font-size:var(--font-size-sm); color:var(--color-text-secondary); cursor:pointer; }
+  .tt-style-tabs button.active { background:var(--color-accent); color:#fff; border-color:var(--color-accent); font-weight:700; }
+
+  .tt-block-row { position:relative; height:28px; margin-bottom:2px; background:var(--color-surface-base); border-radius:4px; overflow:visible; }
+  .tt-block-h { position:absolute; height:20px; top:4px; border-radius:3px; padding:0 4px; font-size:9px; color:#fff; line-height:20px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .tt-time-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--color-text-secondary); padding:0 2px; margin-bottom:4px; }
+  .tt-v-item { display:flex; padding:8px 0; border-bottom:1px solid var(--color-border-muted); }
+  .tt-v-time { width:50px; font-size:var(--font-size-sm); font-weight:700; color:var(--color-accent); flex-shrink:0; }
+  .tt-v-info { flex:1; }
+  .tt-v-title { font-size:var(--font-size-lg); font-weight:700; }
+  .tt-v-detail { font-size:var(--font-size-xs); color:var(--color-text-secondary); margin-top:2px; }
+  .tt-v-bar { height:4px; background:var(--color-border-muted); border-radius:2px; margin-top:4px; }
+  .tt-v-bar-fill { height:4px; border-radius:2px; }
+  .tt-card { background:var(--color-surface-base); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:6px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .tt-card-title { font-size:var(--font-size-xl); font-weight:700; margin-bottom:4px; }
+  .tt-card-time { font-size:var(--font-size-sm); color:var(--color-text-secondary); }
+  .tt-card-bar { height:6px; background:var(--color-border-muted); border-radius:3px; margin-top:6px; }
+  .tt-card-bar-fill { height:6px; border-radius:3px; }
+  .tt-circle-wrap { text-align:center; }
+  .tt-circle-legend { display:flex; flex-direction:column; gap:6px; margin-top:10px; text-align:left; }
+  .tt-circle-legend .tt-leg-item { display:flex; align-items:center; gap:8px; font-size:var(--font-size-sm); }
+  .tt-circle-legend .tt-leg-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+  .tt-circle-legend .tt-leg-time { color:var(--color-text-secondary); font-size:var(--font-size-xs); margin-left:auto; }
+  .tt-empty { text-align:center; padding:40px; color:var(--color-text-secondary); font-size:var(--font-size-lg); }
+</style>
+</head>
+<body>
+<div id="header"></div>
+<div class="tt-container">
+  <div class="tt-nav">
+    <button id="ttPrev">&lt;</button>
+    <span class="tt-date" id="ttDate"></span>
+    <button id="ttNext">&gt;</button>
+    <button class="btn btn-outline btn-sm" id="ttToday">오늘</button>
+  </div>
+  <div class="tt-style-tabs" id="ttStyleTabs">
+    <button data-style="o" class="active">원형</button>
+    <button data-style="h">가로</button>
+    <button data-style="v">세로</button>
+    <button data-style="c">카드</button>
+  </div>
+  <div id="ttContent"></div>
+</div>
+<script src="js/supabase.min.js"></script>
+<script src="js/bcryptjs.min.js"></script>
+<script src="js/app.js"></script>
+<script src="js/timetable.js"></script>
+</body>
+</html>

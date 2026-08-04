@@ -20,6 +20,8 @@
   const progressSection = document.getElementById('progressSection');
   const searchInput = document.getElementById('searchInput');
   const filterUser = document.getElementById('filterUser');
+  const filterDateFrom = document.getElementById('filterDateFrom');
+  const filterDateTo = document.getElementById('filterDateTo');
   const filterStatus = document.getElementById('filterStatus');
   const schedRecurring = document.getElementById('schedRecurring');
   const recurEndGroup = document.getElementById('recurEndGroup');
@@ -39,7 +41,8 @@
       hdr.innerHTML = `<div class="header" style="margin-bottom:0">
         <h1>FAMILY PLAN</h1>
         <div class="header-nav">
-          <a href="dashboard.html" style="font-weight:700;font-size:var(--font-size-lg);text-decoration:none;color:var(--color-text-primary)">${session.name}님</a>
+          <a href="dashboard.html" style="font-weight:700;color:var(--color-accent)">메인</a>
+          <a href="timetable.html">시간표</a>
           <a href="mypage.html">MY</a>
           <button id="logoutBtn">LogOut</button>
         </div></div>`;
@@ -70,6 +73,8 @@
 
     searchInput.addEventListener('input', debounce(loadSchedules, 300));
     filterUser.addEventListener('change', loadSchedules);
+    filterDateFrom.addEventListener('change', loadSchedules);
+    filterDateTo.addEventListener('change', loadSchedules);
     filterStatus.addEventListener('change', loadSchedules);
 
     document.getElementById('todayBadge').addEventListener('click', () => {
@@ -226,12 +231,16 @@
     if (!currentFamilyId) { allSchedules = []; renderScheduleList(); return; }
     const selectedUsers = Array.from(filterUser.selectedOptions).map(o => o.value);
     const q = searchInput.value.trim();
+    const dFrom = filterDateFrom.value;
+    const dTo = filterDateTo.value;
     const status = filterStatus.value;
 
     let query = sb.from('schedules').select('*').eq('family_id', currentFamilyId);
     if (selectedUsers.length > 0 && selectedUsers.length < members.length) {
       query = query.in('target_user_id', selectedUsers);
     }
+    if (dFrom) query = query.gte('scheduled_from', dFrom.replace(/-/g,'')+'0000');
+    if (dTo) query = query.lte('scheduled_to', dTo.replace(/-/g,'')+'2359');
     if (q) query = query.or(`title.ilike.%${q}%,requester.ilike.%${q}%`);
 
     const { data } = await query;
@@ -242,7 +251,7 @@
     }
 
     const dateStr = localDateStr(currentDate);
-    if (!q) {
+    if (!q && !dFrom && !dTo) {
       let viewFiltered;
       if (currentView === 'day') {
         viewFiltered = allSchedules.filter(s => s.from.startsWith(dateStr.replace(/-/g,'')));
@@ -276,6 +285,7 @@
       const div = document.createElement('div');
       div.className = 'schedule-item' + (s.completed ? ' completed' : '');
       div.innerHTML = `
+        <div class="check"><input type="checkbox" ${s.completed ? 'checked' : ''} data-id="${s.scheduleId}" ${!canEdit ? 'disabled' : ''}></div>
         <div class="info">
           <div class="title">${s.title} ${s.isRecurring ? '<span class="recur-icon" title="반복 일정">&#x1F504;</span>' : ''}</div>
           <div class="meta">${fmtDisplay24(s.from)} ~ ${fmtDisplay24(s.to)} | ${s.requester || '-'} → ${targetName}${!isMine ? ' [대리]' : ''} | 작성: ${creatorName}</div>
@@ -289,6 +299,14 @@
           ${s.createdBy === currentUserId ? `<button class="delete" data-id="${s.scheduleId}">삭제</button>` : ''}
         </div>`;
       scheduleListEl.appendChild(div);
+    });
+
+    scheduleListEl.querySelectorAll('.check input').forEach(cb => {
+      cb.addEventListener('change', async () => {
+        const id = cb.dataset.id;
+        await sb.from('schedules').update({ completed: cb.checked, progress: cb.checked ? 100 : undefined }).eq('schedule_id', id);
+        loadAll();
+      });
     });
 
     scheduleListEl.querySelectorAll('.progress-bar input[type="range"]').forEach(r => {
@@ -401,7 +419,25 @@
     const inlineTarget = document.getElementById('inlineTarget');
     inlineTarget.innerHTML = members.map(m => `<option value="${m.id}" ${m.id === currentUserId ? 'selected' : ''}>${m.name}</option>`).join('');
     document.getElementById('inlineDateFrom').value = getToday();
-    refreshDefaultTimes();
+
+    (async function loadDefaultTime() {
+      const today = getToday().replace(/-/g,'');
+      const { data } = await sb.from('schedules').select('scheduled_to')
+        .eq('family_id', currentFamilyId).eq('target_user_id', currentUserId)
+        .gte('scheduled_from', today+'0000').lte('scheduled_from', today+'2359');
+      let fromTime;
+      if (data && data.length > 0) {
+        const maxTo = data.reduce((max, s) => s.scheduled_to > max ? s.scheduled_to : max, '');
+        fromTime = maxTo.substring(8,10) + ':' + maxTo.substring(10,12);
+      } else {
+        const now = new Date();
+        fromTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      }
+      document.getElementById('inlineTimeFrom').value = fromTime;
+      const [h, m] = fromTime.split(':');
+      const toDate = new Date(2026,0,1,parseInt(h),parseInt(m)+30);
+      document.getElementById('inlineTimeTo').value = String(toDate.getHours()).padStart(2,'0')+':'+String(toDate.getMinutes()).padStart(2,'0');
+    })();
 
     document.getElementById('inlineProgress').addEventListener('input', (e) => {
       document.getElementById('inlineProgressVal').textContent = e.target.value + '%';
@@ -439,7 +475,7 @@
         document.getElementById('inlineDateTo').value,
         document.getElementById('inlineTimeTo').value,
         parseInt(document.getElementById('inlineProgress').value),
-        false,
+        document.getElementById('inlineCompleted').checked,
         recurring,
         recurring ? document.getElementById('inlineRecurEnd').value : null
       );
@@ -448,31 +484,12 @@
       document.getElementById('inlineRequester').value = '';
       document.getElementById('inlineProgress').value = 0;
       document.getElementById('inlineProgressVal').textContent = '0%';
+      document.getElementById('inlineCompleted').checked = false;
       document.getElementById('inlineRecurring').value = '';
       document.getElementById('inlineRecurEnd').value = '';
       document.getElementById('inlineRecurEnd').style.display = 'none';
-      refreshDefaultTimes();
       loadAll();
     });
-  }
-
-  async function refreshDefaultTimes() {
-    const today = getToday().replace(/-/g,'');
-    const { data } = await sb.from('schedules').select('scheduled_to')
-      .eq('family_id', currentFamilyId).eq('target_user_id', currentUserId)
-      .gte('scheduled_from', today+'0000').lte('scheduled_from', today+'2359');
-    let fromTime;
-    if (data && data.length > 0) {
-      const maxTo = data.reduce((max, s) => s.scheduled_to > max ? s.scheduled_to : max, '');
-      fromTime = maxTo.substring(8,10) + ':' + maxTo.substring(10,12);
-    } else {
-      const now = new Date();
-      fromTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    }
-    document.getElementById('inlineTimeFrom').value = fromTime;
-    const [h, m] = fromTime.split(':');
-    const toDate = new Date(2026,0,1,parseInt(h),parseInt(m)+30);
-    document.getElementById('inlineTimeTo').value = String(toDate.getHours()).padStart(2,'0')+':'+String(toDate.getMinutes()).padStart(2,'0');
   }
 
   function fmt24(d, t) { return d.replace(/-/g, '') + (t || '0000').replace(':', ''); }
@@ -520,7 +537,7 @@
         document.getElementById('schedDateTo').value,
         document.getElementById('schedTimeTo').value,
         parseInt(document.getElementById('schedProgress').value),
-        false,
+        document.getElementById('schedCompleted').checked,
         recurring,
         recurring ? document.getElementById('schedRecurEnd').value : null
       );
@@ -547,6 +564,7 @@
       document.getElementById('schedTimeTo').value = t.substring(8,10)+':'+t.substring(10,12);
       document.getElementById('schedProgress').value = schedule.progress;
       document.getElementById('schedProgressVal').textContent = schedule.progress + '%';
+      document.getElementById('schedCompleted').checked = schedule.completed;
       document.getElementById('schedRecurring').value = '';
       document.getElementById('schedRecurEnd').value = '';
       recurEndGroup.style.display = 'none';
@@ -558,6 +576,7 @@
       document.getElementById('schedDateTo').value = getToday();
       document.getElementById('schedProgress').value = 0;
       document.getElementById('schedProgressVal').textContent = '0%';
+      document.getElementById('schedCompleted').checked = false;
       document.getElementById('schedRecurring').value = '';
       document.getElementById('schedRecurEnd').value = '';
       recurEndGroup.style.display = 'none';
