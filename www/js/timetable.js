@@ -109,6 +109,7 @@
 
   function renderCircle(schedules) {
     const accent = accentColor();
+    const colorPalette = ['#03c75a','#3498db','#e74c3c','#f39c12','#9b59b6','#1abc9c','#e67e22','#2ecc71'];
     const cx = 140, cy = 140, outerR = 120, innerR = 85;
     let svg = '<svg viewBox="0 0 280 280" style="max-width:280px;width:100%">';
     svg += '<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#fff" stroke-width="2" opacity="0.5"/></pattern></defs>';
@@ -147,8 +148,8 @@
       const iy1 = cy + innerR * Math.sin(sr);
       const ix2 = cx + innerR * Math.cos(er);
       const iy2 = cy + innerR * Math.sin(er);
-      let bg = '#3498db';
-      if (s.completed) bg = accent;
+      let bg = colorPalette[idx % colorPalette.length];
+      if (s.completed) bg = colorPalette[idx % colorPalette.length];
       else if (s.progress === 0) bg = '#999';
       const pathD = 'M' + x1 + ',' + y1 + ' A' + outerR + ',' + outerR + ' 0 ' + largeArc + ' 1 ' + x2 + ',' + y2 + ' L' + ix2 + ',' + iy2 + ' A' + innerR + ',' + innerR + ' 0 ' + largeArc + ' 0 ' + ix1 + ',' + iy1 + ' Z';
       svg += '<path class="tt-arc" data-idx="' + idx + '" d="' + pathD + '" fill="' + bg + '" opacity="0.8"/>';
@@ -177,8 +178,8 @@
 
     let legend = '<div class="tt-circle-legend">';
     schedules.forEach((s, idx) => {
-      let bg = '#3498db';
-      if (s.completed) bg = accent;
+      let bg = colorPalette[idx % colorPalette.length];
+      if (s.completed) bg = colorPalette[idx % colorPalette.length];
       else if (s.progress === 0) bg = '#999';
       legend += '<div class="tt-leg-item" data-idx="' + idx + '"><div class="tt-leg-dot" style="background:' + bg + '"></div><span>' + s.title + '</span><span class="tt-leg-time">' + s.from.substring(8,10) + ':' + s.from.substring(10,12) + '~' + s.to.substring(8,10) + ':' + s.to.substring(10,12) + '</span></div>';
     });
@@ -195,7 +196,7 @@
       });
       item.addEventListener('mouseleave', () => {
         document.querySelectorAll('.tt-arc').forEach(arc => {
-          arc.style.opacity = arc.dataset.idx === 'hatch' ? '1' : '0.8';
+          arc.style.opacity = '0.8';
         });
       });
     });
