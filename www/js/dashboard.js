@@ -285,7 +285,6 @@
       const div = document.createElement('div');
       div.className = 'schedule-item' + (s.completed ? ' completed' : '');
       div.innerHTML = `
-        <div class="check"><input type="checkbox" ${s.completed ? 'checked' : ''} data-id="${s.scheduleId}" ${!canEdit ? 'disabled' : ''}></div>
         <div class="info">
           <div class="title">${s.title} ${s.isRecurring ? '<span class="recur-icon" title="반복 일정">&#x1F504;</span>' : ''}</div>
           <div class="meta">${fmtDisplay24(s.from)} ~ ${fmtDisplay24(s.to)} | ${s.requester || '-'} → ${targetName}${!isMine ? ' [대리]' : ''} | 작성: ${creatorName}</div>
@@ -299,14 +298,6 @@
           ${s.createdBy === currentUserId ? `<button class="delete" data-id="${s.scheduleId}">삭제</button>` : ''}
         </div>`;
       scheduleListEl.appendChild(div);
-    });
-
-    scheduleListEl.querySelectorAll('.check input').forEach(cb => {
-      cb.addEventListener('change', async () => {
-        const id = cb.dataset.id;
-        await sb.from('schedules').update({ completed: cb.checked, progress: cb.checked ? 100 : undefined }).eq('schedule_id', id);
-        loadAll();
-      });
     });
 
     scheduleListEl.querySelectorAll('.progress-bar input[type="range"]').forEach(r => {
@@ -417,7 +408,39 @@
 
   function setupInlineAdd() {
     const inlineTarget = document.getElementById('inlineTarget');
-    inlineTarget.innerHTML = members.map(m => `<option value="${m.id}" ${m.id === currentUserId ? 'selected' : ''}>${m.name}</option>`).join('');
+    inlineTarget.innerHTML = '';
+    members.forEach(m => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tbtn' + (m.id === currentUserId ? ' active' : '');
+      btn.dataset.id = m.id;
+      btn.textContent = m.name;
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const activeCount = inlineTarget.querySelectorAll('.tbtn[data-id].active').length;
+        if (activeCount === members.length) allBtn.classList.add('active');
+        else allBtn.classList.remove('active');
+      });
+      inlineTarget.appendChild(btn);
+    });
+    const inlineTargetAll = document.getElementById('inlineTargetAll');
+    inlineTargetAll.innerHTML = '';
+    const allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = 'tbtn';
+    allBtn.textContent = '모두';
+    allBtn.addEventListener('click', () => {
+      const active = inlineTarget.querySelectorAll('.tbtn.active');
+      if (active.length === members.length) {
+        inlineTarget.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
+        inlineTarget.querySelector('.tbtn[data-id="' + currentUserId + '"]').classList.add('active');
+        allBtn.classList.remove('active');
+      } else {
+        inlineTarget.querySelectorAll('.tbtn[data-id]').forEach(b => b.classList.add('active'));
+        allBtn.classList.add('active');
+      }
+    });
+    inlineTargetAll.appendChild(allBtn);
     document.getElementById('inlineDateFrom').value = getToday();
 
     (async function loadDefaultTime() {
@@ -466,25 +489,28 @@
       const title = document.getElementById('inlineTitle').value.trim();
       if (!title) return;
       const recurring = document.getElementById('inlineRecurring').value;
-      const row = buildScheduleRow(
-        title,
-        document.getElementById('inlineTarget').value,
-        document.getElementById('inlineRequester').value.trim(),
-        document.getElementById('inlineDateFrom').value,
-        document.getElementById('inlineTimeFrom').value,
-        document.getElementById('inlineDateTo').value,
-        document.getElementById('inlineTimeTo').value,
-        parseInt(document.getElementById('inlineProgress').value),
-        document.getElementById('inlineCompleted').checked,
-        recurring,
-        recurring ? document.getElementById('inlineRecurEnd').value : null
-      );
-      await saveRow(row, recurring, null);
+      const targets = Array.from(document.querySelectorAll('#inlineTarget .tbtn.active[data-id]')).map(b => b.dataset.id);
+      if (targets.length === 0) return;
+      for (const uid of targets) {
+        const row = buildScheduleRow(
+          title,
+          uid,
+          document.getElementById('inlineRequester').value.trim(),
+          document.getElementById('inlineDateFrom').value,
+          document.getElementById('inlineTimeFrom').value,
+          document.getElementById('inlineDateTo').value,
+          document.getElementById('inlineTimeTo').value,
+          parseInt(document.getElementById('inlineProgress').value),
+          false,
+          recurring,
+          recurring ? document.getElementById('inlineRecurEnd').value : null
+        );
+        await saveRow(row, recurring, null);
+      }
       document.getElementById('inlineTitle').value = '';
       document.getElementById('inlineRequester').value = '';
       document.getElementById('inlineProgress').value = 0;
       document.getElementById('inlineProgressVal').textContent = '0%';
-      document.getElementById('inlineCompleted').checked = false;
       document.getElementById('inlineRecurring').value = '';
       document.getElementById('inlineRecurEnd').value = '';
       document.getElementById('inlineRecurEnd').style.display = 'none';
@@ -528,33 +554,46 @@
       e.preventDefault();
       const editId = document.getElementById('editScheduleId').value;
       const recurring = document.getElementById('schedRecurring').value;
-      const row = buildScheduleRow(
+      const targets = Array.from(document.querySelectorAll('#schedTarget .tbtn.active')).map(b => b.dataset.id);
+      if (targets.length === 0) return;
+      for (const uid of targets) {
+        const row = buildScheduleRow(
         document.getElementById('schedTitle').value.trim(),
-        document.getElementById('schedTarget').value,
+        uid,
         document.getElementById('schedRequester').value.trim(),
         document.getElementById('schedDateFrom').value,
         document.getElementById('schedTimeFrom').value,
         document.getElementById('schedDateTo').value,
         document.getElementById('schedTimeTo').value,
         parseInt(document.getElementById('schedProgress').value),
-        document.getElementById('schedCompleted').checked,
+        false,
         recurring,
         recurring ? document.getElementById('schedRecurEnd').value : null
       );
       await saveRow(row, recurring, editId);
+      }
       modal.style.display = 'none';
       loadAll();
     });
   }
 
   function openModal(schedule = null) {
-    const targetSelect = document.getElementById('schedTarget');
-    targetSelect.innerHTML = members.map(m => `<option value="${m.id}" ${m.id === currentUserId ? 'selected' : ''}>${m.name}</option>`).join('');
+    const targetDiv = document.getElementById('schedTarget');
+    targetDiv.innerHTML = '';
+    members.forEach(m => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tbtn';
+      btn.dataset.id = m.id;
+      btn.textContent = m.name;
+      btn.addEventListener('click', () => { btn.classList.toggle('active'); });
+      targetDiv.appendChild(btn);
+    });
     if (schedule) {
       document.getElementById('modalTitle').textContent = '일정 수정';
       document.getElementById('editScheduleId').value = schedule.scheduleId;
       document.getElementById('schedTitle').value = schedule.title;
-      document.getElementById('schedTarget').value = schedule.targetUserId;
+      targetDiv.querySelector('.tbtn[data-id="' + schedule.targetUserId + '"]')?.classList.add('active');
       document.getElementById('schedRequester').value = schedule.requester;
       const f = schedule.from || '';
       document.getElementById('schedDateFrom').value = f.substring(0,4)+'-'+f.substring(4,6)+'-'+f.substring(6,8);
@@ -564,7 +603,6 @@
       document.getElementById('schedTimeTo').value = t.substring(8,10)+':'+t.substring(10,12);
       document.getElementById('schedProgress').value = schedule.progress;
       document.getElementById('schedProgressVal').textContent = schedule.progress + '%';
-      document.getElementById('schedCompleted').checked = schedule.completed;
       document.getElementById('schedRecurring').value = '';
       document.getElementById('schedRecurEnd').value = '';
       recurEndGroup.style.display = 'none';
@@ -572,11 +610,11 @@
       document.getElementById('modalTitle').textContent = '일정 추가';
       document.getElementById('editScheduleId').value = '';
       document.getElementById('scheduleForm').reset();
+      targetDiv.querySelector('.tbtn[data-id="' + currentUserId + '"]')?.classList.add('active');
       document.getElementById('schedDateFrom').value = getToday();
       document.getElementById('schedDateTo').value = getToday();
       document.getElementById('schedProgress').value = 0;
       document.getElementById('schedProgressVal').textContent = '0%';
-      document.getElementById('schedCompleted').checked = false;
       document.getElementById('schedRecurring').value = '';
       document.getElementById('schedRecurEnd').value = '';
       recurEndGroup.style.display = 'none';

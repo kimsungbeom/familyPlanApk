@@ -679,6 +679,32 @@ a:hover { text-decoration: underline; }
   outline: none;
 }
 
+/* ─── TARGET BUTTONS ──────────────── */
+
+.target-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.target-btn-group .tbtn {
+  padding: 2px 8px;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-base);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.target-btn-group .tbtn.active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+  font-weight: 700;
+}
+
 /* ─── FOCUS VISIBLE ──────────────── */
 
 :focus-visible {
