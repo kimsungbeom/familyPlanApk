@@ -71,4 +71,33 @@
       window.location.href = 'login.html';
     });
   }
+  // ─── THEME ─────────────────────────────────
+  var currentTheme = await loadTheme();
+  var accentInput = document.getElementById('themeAccent');
+  var bgInput = document.getElementById('themeBgColor');
+  if (accentInput) accentInput.value = currentTheme.accent;
+  if (bgInput) bgInput.value = currentTheme.bgColor;
+
+  accentInput?.addEventListener('input', function() {
+    applyTheme({ accent: this.value, bgColor: bgInput.value });
+  });
+  bgInput?.addEventListener('input', function() {
+    applyTheme({ accent: accentInput.value, bgColor: this.value });
+  });
+
+  document.querySelectorAll('.theme-preset').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var accent = this.getAttribute('data-accent');
+      var bg = this.getAttribute('data-bg');
+      accentInput.value = accent;
+      bgInput.value = bg;
+      applyTheme({ accent: accent, bgColor: bg });
+    });
+  });
+
+  document.getElementById('saveThemeBtn')?.addEventListener('click', async function() {
+    await saveTheme({ accent: accentInput.value, bgColor: bgInput.value });
+    showSuccess(null, '테마가 저장되었습니다.');
+  });
+
 })();

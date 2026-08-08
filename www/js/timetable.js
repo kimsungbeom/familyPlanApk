@@ -1,6 +1,7 @@
 (async function() {
   var session = await getSession();
   if (!session) { window.location.href = 'login.html'; return; }
+  await loadTheme();
   var currentFamilyId = session.familyId;
   var currentUserId = session.id;
   var currentDate = new Date();

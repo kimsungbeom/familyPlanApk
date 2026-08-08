@@ -152,3 +152,45 @@ function showDebugToast(msg) {
 }
 
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+// ─── THEME ──────────────────────────────────
+const THEME_DEFAULTS = { accent: '#03c75a', bgColor: '#f6f6f7' };
+
+function adjustBrightness(hex, amount) {
+  var num = parseInt(hex.replace('#', ''), 16);
+  var r = Math.min(255, Math.max(0, (num >> 16) + amount));
+  var g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+  var b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+  return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+}
+
+async function loadTheme() {
+  var theme = THEME_DEFAULTS;
+  try {
+    var v = await Capacitor.Plugins.Preferences.get({ key: 'fp_theme' });
+    if (v && v.value) {
+      var parsed = JSON.parse(v.value);
+      theme = { accent: parsed.accent || THEME_DEFAULTS.accent, bgColor: parsed.bgColor || THEME_DEFAULTS.bgColor };
+    }
+  } catch {}
+  applyTheme(theme);
+  return theme;
+}
+
+function applyTheme(theme) {
+  if (!theme) return;
+  var root = document.documentElement.style;
+  if (theme.accent) {
+    root.setProperty('--color-accent', theme.accent);
+    root.setProperty('--color-accent-hover', adjustBrightness(theme.accent, -10));
+  }
+  if (theme.bgColor) root.setProperty('--color-surface-raised', theme.bgColor);
+}
+
+async function saveTheme(theme) {
+  try {
+    await Capacitor.Plugins.Preferences.set({ key: 'fp_theme', value: JSON.stringify(theme) });
+  } catch {}
+  applyTheme(theme);
+}
+// ──────────────────────────────────────────

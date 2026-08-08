@@ -31,6 +31,7 @@
   }
 
   async function init() {
+    await loadTheme();
     if (!currentFamilyId) {
       progressSection.innerHTML = '<div class="empty-state" style="padding:16px"><p>가족 그룹에 가입하면 진행률을 확인할 수 있습니다.</p></div>';
       return;
@@ -189,7 +190,6 @@
   async function loadSettings() {
     const { data: family } = await sb.from('families').select('*').eq('family_id', currentFamilyId).maybeSingle();
     if (!family) return;
-    applyTheme({ accent: family.theme_accent, bgColor: family.theme_bg_color });
     updateGroupName(family.group_name);
     if (family.created_by === currentUserId) {
       document.getElementById('settingsBtn').style.display = '';
@@ -773,22 +773,6 @@
     });
   }
 
-  // THEME
-  function applyTheme(theme) {
-    if (!theme) return;
-    const root = document.documentElement.style;
-    if (theme.accent) { root.setProperty('--color-accent', theme.accent); root.setProperty('--color-accent-hover', adjustBrightness(theme.accent, -10)); }
-    if (theme.bgColor) root.setProperty('--color-surface-raised', theme.bgColor);
-  }
-
-  function adjustBrightness(hex, amount) {
-    const c = hex.replace('#', '');
-    const r = Math.max(0, Math.min(255, parseInt(c.substring(0,2),16) + amount));
-    const g = Math.max(0, Math.min(255, parseInt(c.substring(2,4),16) + amount));
-    const b = Math.max(0, Math.min(255, parseInt(c.substring(4,6),16) + amount));
-    return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
-  }
-
   function updateGroupName(name) {
     const title = document.getElementById('familyPanelTitle');
     const h1 = document.querySelector('.header h1');
@@ -815,7 +799,7 @@
         theme_bg_color: document.getElementById('settingsBgColor').value
       }).eq('family_id', currentFamilyId);
       const { data: fam } = await sb.from('families').select('*').eq('family_id', currentFamilyId).maybeSingle();
-      if (fam) { applyTheme({ accent: fam.theme_accent, bgColor: fam.theme_bg_color }); updateGroupName(fam.group_name); }
+      if (fam) { applyTheme({ accent: fam.theme_accent, bgColor: fam.theme_bg_color }); saveTheme({ accent: fam.theme_accent, bgColor: fam.theme_bg_color }); updateGroupName(fam.group_name); }
       sm.style.display = 'none';
     });
   }
