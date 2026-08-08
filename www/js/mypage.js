@@ -14,13 +14,11 @@
           <a href="timetable.html">시간표</a>
           <a href="mypage.html" style="font-weight:700;color:var(--color-accent)">MY</a>
         <button id="mypageLogoutBtn">LogOut</button>
-        ${renderBellIcon()}
       </div></div>`;
     document.getElementById('mypageLogoutBtn').addEventListener('click', async () => {
       await clearSession();
       window.location.href = 'login.html';
     });
-    loadUnreadCount();
   }
 
   if (changePassForm) {
