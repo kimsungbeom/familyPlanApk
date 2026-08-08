@@ -285,6 +285,18 @@
 
       const div = document.createElement('div');
       div.className = 'schedule-item' + (s.completed ? ' completed' : '');
+      const tipParts = [
+        '<b>' + escapeHtml(s.title) + '</b>' + (s.isRecurring ? ' 🔄반복' : ''),
+        '시간: ' + fmtDisplay24(s.from) + ' ~ ' + fmtDisplay24(s.to),
+        '요청: ' + (s.requester || '-') + ' → ' + targetName + (!isMine ? ' (대리)' : ''),
+        '작성: ' + creatorName,
+        '진행률: ' + s.progress + '%'
+      ];
+      div.setAttribute('data-tooltip', tipParts.join('<br>'));
+      div.addEventListener('mouseenter', showTip);
+      div.addEventListener('mouseleave', hideTip);
+      div.addEventListener('touchstart', showTip, { passive: true });
+      div.addEventListener('touchend', function(){ setTimeout(hideTip, 1500); });
       div.innerHTML = `
         <div class="info">
           <div class="title">${s.title} ${s.isRecurring ? '<span class="recur-icon" title="반복 일정">&#x1F504;</span>' : ''}</div>
@@ -328,6 +340,32 @@
         loadAll();
       });
     });
+  }
+
+  // ─── SCHEDULE TOOLTIP ─────────────────────
+  function getTip() {
+    var el = document.getElementById('scheduleTip');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'scheduleTip';
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+  function showTip(e) {
+    var tip = getTip();
+    var div = e.currentTarget;
+    tip.innerHTML = div.getAttribute('data-tooltip');
+    tip.classList.add('show');
+    var rect = div.getBoundingClientRect();
+    var x = Math.min(rect.left + 10, window.innerWidth - 310);
+    var y = rect.bottom + 6;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+  function hideTip() {
+    var tip = getTip();
+    tip.classList.remove('show');
   }
 
   async function loadProgressStats() {
@@ -862,6 +900,10 @@
     saveLocalBackup((data || []).map(mapSchedule));
   }
   function debounce(fn, ms) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; }
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 
   init().then(() => { startAutoBackup(); });
 })();

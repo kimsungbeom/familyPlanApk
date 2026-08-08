@@ -236,13 +236,13 @@ a:hover { text-decoration: underline; }
 
 .schedule-item .info { flex: 1; min-width: 0; }
 .schedule-item .info .title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--color-text-primary);
 }
 .schedule-item.completed .info .title { text-decoration: line-through; }
 .schedule-item .info .meta {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-md);
   color: var(--color-text-secondary);
   margin-top: 2px;
 }
@@ -260,7 +260,7 @@ a:hover { text-decoration: underline; }
   accent-color: var(--color-accent);
 }
 .schedule-item .progress-bar .pct {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-lg);
   font-weight: 700;
   min-width: 32px;
   text-align: right;
@@ -272,7 +272,7 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--color-border-muted);
   padding: 4px 8px;
   border-radius: var(--radius-xs);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   cursor: pointer;
   font-family: var(--font-family-primary);
   color: var(--color-text-secondary);
@@ -724,4 +724,37 @@ a:hover { text-decoration: underline; }
   text-align: center;
   letter-spacing: 4px;
   margin: 8px 0;
+}
+
+/* ─── SCHEDULE TOOLTIP ───────────── */
+
+#scheduleTip {
+  position: fixed;
+  z-index: 9999;
+  background: #1f2937;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 300px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .15s, transform .15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+#scheduleTip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+#scheduleTip .tt-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  white-space: nowrap;
+}
+#scheduleTip .tt-label {
+  color: #9ca3af;
+  font-size: 11px;
 }
