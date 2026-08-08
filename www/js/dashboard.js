@@ -294,10 +294,10 @@
       ];
       div.setAttribute('data-tooltip', tipParts.join('<br>'));
       var pressTimer;
-      div.addEventListener('mousedown', function(e) { pressTimer = setTimeout(function() { showTip(e); }, 500); });
+      div.addEventListener('mousedown', function(e) { pressTimer = setTimeout(function() { showTip(div); }, 500); });
       div.addEventListener('mouseup', function() { clearTimeout(pressTimer); hideTip(); });
       div.addEventListener('mouseleave', function() { clearTimeout(pressTimer); hideTip(); });
-      div.addEventListener('touchstart', function(e) { pressTimer = setTimeout(function() { showTip(e); }, 500); }, { passive: true });
+      div.addEventListener('touchstart', function(e) { pressTimer = setTimeout(function() { showTip(div); }, 500); }, { passive: true });
       div.addEventListener('touchend', function() { clearTimeout(pressTimer); setTimeout(hideTip, 1500); });
       div.addEventListener('touchcancel', function() { clearTimeout(pressTimer); hideTip(); });
       div.innerHTML = `
@@ -355,12 +355,11 @@
     }
     return el;
   }
-  function showTip(e) {
+  function showTip(el) {
     var tip = getTip();
-    var div = e.currentTarget;
-    tip.innerHTML = div.getAttribute('data-tooltip');
+    tip.innerHTML = el.getAttribute('data-tooltip');
     tip.classList.add('show');
-    var rect = div.getBoundingClientRect();
+    var rect = el.getBoundingClientRect();
     var x = Math.min(rect.left + 10, window.innerWidth - 310);
     var y = rect.bottom + 6;
     tip.style.left = x + 'px';
