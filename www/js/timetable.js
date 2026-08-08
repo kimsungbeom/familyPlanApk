@@ -17,11 +17,13 @@
         <a href="timetable.html" style="font-weight:700;color:var(--color-accent)">시간표</a>
         <a href="mypage.html">MY</a>
         <button id="ttLogoutBtn">LogOut</button>
+        ${renderBellIcon()}
       </div></div>`;
     document.getElementById('ttLogoutBtn').addEventListener('click', async () => {
       await clearSession();
       window.location.href = 'login.html';
     });
+    loadUnreadCount();
   }
 
   function accentColor() {

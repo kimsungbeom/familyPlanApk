@@ -135,6 +135,23 @@ Deno.serve(async (req) => {
     });
     const fcmBody = await fcmRes.json();
 
+    const notificationTitle = record.created_by + '님 일정';
+    await fetch(`${supabaseUrl}/rest/v1/notifications`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        user_id: record.target_user_id,
+        title: notificationTitle,
+        body: record.title,
+        created_by: record.created_by,
+      }),
+    });
+
     return new Response(JSON.stringify({ sent: true, to: record.target_user_id, title: record.title, fcmStatus: fcmRes.status, fcmName: fcmBody.name }), { status: 200, headers: { 'Access-Control-Allow-Origin': origin } });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message, stack: e.stack, name: e.name }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });

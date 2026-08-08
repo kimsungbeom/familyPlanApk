@@ -45,11 +45,13 @@
           <a href="timetable.html">시간표</a>
           <a href="mypage.html">MY</a>
           <button id="logoutBtn">LogOut</button>
+          ${renderBellIcon()}
         </div></div>`;
       document.getElementById('logoutBtn').addEventListener('click', async () => {
         await clearSession();
         window.location.href = 'login.html';
       });
+      loadUnreadCount();
     }
 
     await loadFamilyData();

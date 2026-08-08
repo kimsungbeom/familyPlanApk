@@ -152,3 +152,71 @@ function showDebugToast(msg) {
 }
 
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+// ─── NOTIFICATION BELL ──────────────────────
+function renderBellIcon() {
+  return '<span id="notiBell" class="bell-icon" onclick="showNotificationsModal()" title="알림">🔔<span id="notiBadge" class="bell-badge" style="display:none">0</span></span>';
+}
+
+async function loadUnreadCount() {
+  var session = await getSession();
+  if (!session || !session.user) return;
+  var r = await sb.from('notifications').select('id', { count: 'exact' }).eq('user_id', session.user.id).eq('is_read', false);
+  var count = r.count || 0;
+  var badge = document.getElementById('notiBadge');
+  if (badge) {
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  return count;
+}
+
+async function showNotificationsModal() {
+  var session = await getSession();
+  if (!session || !session.user) return;
+  var r = await sb.from('notifications').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(50);
+  var list = r.data || [];
+  var html = '<div class="noti-overlay" id="notiOverlay" onclick="closeNotificationsModal(event)">';
+  html += '<div class="noti-panel" onclick="event.stopPropagation()">';
+  html += '<div class="noti-header"><h3>알림</h3><button class="noti-close" onclick="closeNotificationsModal()">&times;</button></div>';
+  html += '<div class="noti-list">';
+  if (list.length === 0) {
+    html += '<div class="noti-empty">알림이 없습니다</div>';
+  }
+  for (var i = 0; i < list.length; i++) {
+    var n = list[i];
+    html += '<div class="noti-item' + (n.is_read ? '' : ' noti-unread') + '" onclick="markAsRead(' + n.id + ')">';
+    html += '<div class="noti-title">' + escapeHtml(n.title) + '</div>';
+    html += '<div class="noti-body">' + escapeHtml(n.body) + '</div>';
+    html += '<div class="noti-time">' + new Date(n.created_at).toLocaleString() + '</div>';
+    html += '</div>';
+  }
+  html += '</div></div></div>';
+  var el = document.createElement('div');
+  el.id = 'notiContainer';
+  el.innerHTML = html;
+  document.body.appendChild(el);
+}
+
+function closeNotificationsModal(e) {
+  if (e && e.target !== document.getElementById('notiOverlay')) return;
+  var el = document.getElementById('notiContainer');
+  if (el) el.remove();
+  loadUnreadCount();
+}
+
+async function markAsRead(id) {
+  await sb.from('notifications').update({ is_read: true }).eq('id', id);
+  loadUnreadCount();
+  closeNotificationsModal();
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  return text.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
+}
+// ──────────────────────────────────────────
