@@ -189,7 +189,7 @@ async function showNotificationsModal() {
   }
   for (var i = 0; i < list.length; i++) {
     var n = list[i];
-    html += '<div class="noti-item' + (n.is_read ? '' : ' noti-unread') + '" id="noti-' + n.id + '" onclick="markAsRead(' + n.id + ",'" + escapeHtml(n.created_by) + "','" + (n.type || 'schedule') + "','" + n.title.replace(/'/g, "\\'") + "')\">";
+    html += '<div class="noti-item' + (n.is_read ? '' : ' noti-unread') + '" id="noti-' + n.id + '" data-id="' + n.id + '" data-created-by="' + escapeHtml(n.created_by || '') + '" data-type="' + (n.type || 'schedule') + '" data-title="' + escapeHtml(n.title || '') + '" onclick="markAsRead(event)">';
     html += '<div class="noti-title">' + escapeHtml(n.title) + '</div>';
     html += '<div class="noti-body">' + escapeHtml(n.body) + '</div>';
     html += '<div class="noti-time">' + new Date(n.created_at).toLocaleString() + '</div>';
@@ -209,10 +209,14 @@ function closeNotificationsModal(e) {
   loadUnreadCount();
 }
 
-async function markAsRead(id, createdBy, type, title) {
+async function markAsRead(e) {
+  var el = e.currentTarget;
+  var id = el.getAttribute('data-id');
+  var createdBy = el.getAttribute('data-created-by');
+  var type = el.getAttribute('data-type');
+  var title = el.getAttribute('data-title');
   await sb.from('notifications').update({ is_read: true }).eq('id', id);
-  var el = document.getElementById('noti-' + id);
-  if (el) el.classList.remove('noti-unread');
+  el.classList.remove('noti-unread');
   loadUnreadCount();
   if (type === 'schedule' && createdBy) {
     var session = await getSession();
