@@ -108,13 +108,22 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'oauth failed', oauthResponse: tokenData }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
     }
 
+    const type = record.type || 'schedule';
+    const isReceipt = type === 'read_receipt';
+    const pushTitle = isReceipt
+      ? record.created_by + '님이 읽음'
+      : record.created_by + '님 일정';
+    const pushBody = isReceipt
+      ? '"' + record.title + '" 확인함'
+      : record.title;
+
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
     const fcmPayload = {
       message: {
         token: fcmToken,
         notification: {
-          title: record.created_by + '님 일정',
-          body: record.title,
+          title: pushTitle,
+          body: pushBody,
         },
         android: {
           notification: {
@@ -146,9 +155,10 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         user_id: record.target_user_id,
-        title: notificationTitle,
-        body: record.title,
+        title: pushTitle,
+        body: pushBody,
         created_by: record.created_by,
+        type: type,
       }),
     });
 

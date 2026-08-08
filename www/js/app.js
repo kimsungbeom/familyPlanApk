@@ -160,7 +160,7 @@ function renderBellIcon() {
 
 async function loadUnreadCount() {
   var session = await getSession();
-  if (!session || !session.user) return;
+  if (!session || !session.id) return;
   var r = await sb.from('notifications').select('id', { count: 'exact' }).eq('user_id', session.id).eq('is_read', false);
   var count = r.count || 0;
   var badge = document.getElementById('notiBadge');
@@ -189,7 +189,7 @@ async function showNotificationsModal() {
   }
   for (var i = 0; i < list.length; i++) {
     var n = list[i];
-    html += '<div class="noti-item' + (n.is_read ? '' : ' noti-unread') + '" onclick="markAsRead(' + n.id + ')">';
+    html += '<div class="noti-item' + (n.is_read ? '' : ' noti-unread') + '" id="noti-' + n.id + '" onclick="markAsRead(' + n.id + ",'" + escapeHtml(n.created_by) + "','" + (n.type || 'schedule') + "','" + n.title.replace(/'/g, "\\'") + "')\">";
     html += '<div class="noti-title">' + escapeHtml(n.title) + '</div>';
     html += '<div class="noti-body">' + escapeHtml(n.body) + '</div>';
     html += '<div class="noti-time">' + new Date(n.created_at).toLocaleString() + '</div>';
@@ -209,10 +209,27 @@ function closeNotificationsModal(e) {
   loadUnreadCount();
 }
 
-async function markAsRead(id) {
+async function markAsRead(id, createdBy, type, title) {
   await sb.from('notifications').update({ is_read: true }).eq('id', id);
+  var el = document.getElementById('noti-' + id);
+  if (el) el.classList.remove('noti-unread');
   loadUnreadCount();
-  closeNotificationsModal();
+  if (type === 'schedule' && createdBy) {
+    var session = await getSession();
+    if (session && session.id) {
+      fetch('https://ytltbzoefmuoqpycgudr.supabase.co/functions/v1/send-push', {
+        method: 'POST',
+        credentials: 'omit',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ record: {
+          target_user_id: createdBy,
+          created_by: session.id,
+          title: title,
+          type: 'read_receipt'
+        }})
+      });
+    }
+  }
 }
 
 function escapeHtml(text) {
