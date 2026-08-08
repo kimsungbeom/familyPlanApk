@@ -161,7 +161,7 @@ function renderBellIcon() {
 async function loadUnreadCount() {
   var session = await getSession();
   if (!session || !session.user) return;
-  var r = await sb.from('notifications').select('id', { count: 'exact' }).eq('user_id', session.user.id).eq('is_read', false);
+  var r = await sb.from('notifications').select('id', { count: 'exact' }).eq('user_id', session.id).eq('is_read', false);
   var count = r.count || 0;
   var badge = document.getElementById('notiBadge');
   if (badge) {
@@ -177,8 +177,8 @@ async function loadUnreadCount() {
 
 async function showNotificationsModal() {
   var session = await getSession();
-  if (!session || !session.user) return;
-  var r = await sb.from('notifications').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(50);
+  if (!session || !session.id) return;
+  var r = await sb.from('notifications').select('*').eq('user_id', session.id).order('created_at', { ascending: false }).limit(50);
   var list = r.data || [];
   var html = '<div class="noti-overlay" id="notiOverlay" onclick="closeNotificationsModal(event)">';
   html += '<div class="noti-panel" onclick="event.stopPropagation()">';
