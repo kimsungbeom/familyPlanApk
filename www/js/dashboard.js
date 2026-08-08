@@ -295,11 +295,11 @@
       div.setAttribute('data-tooltip', tipParts.join('<br>'));
       var pressTimer;
       div.addEventListener('mousedown', function(e) { pressTimer = setTimeout(function() { showTip(div); }, 500); });
-      div.addEventListener('mouseup', function() { clearTimeout(pressTimer); hideTip(); });
-      div.addEventListener('mouseleave', function() { clearTimeout(pressTimer); hideTip(); });
+      div.addEventListener('mouseup', function() { clearTimeout(pressTimer); });
+      div.addEventListener('mouseleave', function() { clearTimeout(pressTimer); });
       div.addEventListener('touchstart', function(e) { pressTimer = setTimeout(function() { showTip(div); }, 500); }, { passive: true });
-      div.addEventListener('touchend', function() { clearTimeout(pressTimer); setTimeout(hideTip, 1500); });
-      div.addEventListener('touchcancel', function() { clearTimeout(pressTimer); hideTip(); });
+      div.addEventListener('touchend', function() { clearTimeout(pressTimer); });
+      div.addEventListener('touchcancel', function() { clearTimeout(pressTimer); });
       div.innerHTML = `
         <div class="info">
           <div class="title">${s.title} ${s.isRecurring ? '<span class="recur-icon" title="반복 일정">&#x1F504;</span>' : ''}</div>
@@ -368,6 +368,11 @@
   function hideTip() {
     var tip = getTip();
     tip.classList.remove('show');
+  }
+  if (!window._tipDismissSet) {
+    window._tipDismissSet = true;
+    document.addEventListener('mousedown', function(e) { if (!e.target.closest('.schedule-item')) hideTip(); });
+    document.addEventListener('touchstart', function(e) { if (!e.target.closest('.schedule-item')) hideTip(); }, { passive: true });
   }
 
   async function loadProgressStats() {
