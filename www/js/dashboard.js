@@ -371,8 +371,8 @@
   }
   if (!window._tipDismissSet) {
     window._tipDismissSet = true;
-    document.addEventListener('mousedown', function(e) { if (!e.target.closest('.schedule-item')) hideTip(); });
-    document.addEventListener('touchstart', function(e) { if (!e.target.closest('.schedule-item')) hideTip(); }, { passive: true });
+    document.addEventListener('mousedown', function() { hideTip(); });
+    document.addEventListener('touchstart', function() { hideTip(); }, { passive: true });
   }
 
   async function loadProgressStats() {
