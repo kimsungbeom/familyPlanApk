@@ -95,4 +95,60 @@ function localDateStr(date) {
   return date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
 }
 
+async function registerFCM(userId) {
+  if (typeof Capacitor === 'undefined') { showDebugToast('Capacitor undefined'); return; }
+  try {
+    var PN = Capacitor.Plugins.PushNotifications;
+    if (!PN) { showDebugToast('PushNotifications plugin 없음'); return; }
+    showDebugToast('FCM 권한 요청 중...');
+    var perm = await PN.requestPermissions();
+    showDebugToast('FCM 권한: ' + perm.receive);
+    if (perm.receive !== 'granted') return;
+    showDebugToast('FCM 등록 중...');
+    await PN.register();
+    PN.addListener('registration', async function(token) {
+      showDebugToast('FCM 토큰: ' + token.value.substring(0,10) + '...');
+      var r = await sb.from('device_tokens').upsert({
+        user_id: userId,
+        fcm_token: token.value,
+        updated_at: new Date().toISOString()
+      });
+      if (r.error) { showDebugToast('토큰 저장 오류: ' + r.error.message); }
+      else { showDebugToast('토큰 저장 완료'); }
+    });
+    PN.addListener('registrationError', function(err) {
+      showDebugToast('FCM 등록 오류: ' + err.error);
+    });
+    PN.addListener('pushNotificationReceived', function(notif) {
+      var title = notif.title || '알림';
+      var body = notif.body || '';
+      var el = document.getElementById('pushBanner');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'pushBanner';
+        el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#3b82f6;color:#fff;padding:12px 16px;font-size:14px;z-index:9999;text-align:center;animation:slideDown .3s ease;cursor:pointer';
+        document.body.appendChild(el);
+        el.addEventListener('click', function() { el.remove(); });
+      }
+      el.textContent = (title + ': ' + body).trim();
+      setTimeout(function() { if (el.parentNode) el.remove(); }, 5000);
+    });
+  } catch(e) { showDebugToast('FCM 오류: ' + e.message); }
+}
+
+function showDebugToast(msg) {
+  var el = document.getElementById('debugToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'debugToast';
+    el.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;background:#333;color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;z-index:9999;text-align:center;max-height:60px;overflow-y:auto';
+    document.body.appendChild(el);
+  }
+  var time = new Date().toLocaleTimeString();
+  el.textContent = '[' + time + '] ' + msg;
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.style.opacity = '0.5'; }, 3000);
+  el.style.opacity = '1';
+}
+
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'];

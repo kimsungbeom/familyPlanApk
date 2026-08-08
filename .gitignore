@@ -5,6 +5,7 @@ android/app/build/
 android/.gradle/
 android/captures/
 android/local.properties
+google-services.json
 *.apk
 *.jks
 *.keystore

@@ -103,6 +103,7 @@
 
     setupSettingsModal();
     setupDataManagement();
+    registerFCM(currentUserId);
   }
 
   async function loadFamilyData() {
@@ -655,6 +656,14 @@
       } else {
         await sb.from('schedules').insert(row);
       }
+    }
+    if (!editId && row.target_user_id && row.target_user_id !== currentUserId) {
+      fetch('https://ytltbzoefmuoqpycgudr.supabase.co/functions/v1/send-push', {
+        method: 'POST',
+        credentials: 'omit',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ record: { target_user_id: row.target_user_id, created_by: currentUserId, title: row.title } })
+      });
     }
   }
 
