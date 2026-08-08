@@ -293,10 +293,13 @@
         '진행률: ' + s.progress + '%'
       ];
       div.setAttribute('data-tooltip', tipParts.join('<br>'));
-      div.addEventListener('mouseenter', showTip);
-      div.addEventListener('mouseleave', hideTip);
-      div.addEventListener('touchstart', showTip, { passive: true });
-      div.addEventListener('touchend', function(){ setTimeout(hideTip, 1500); });
+      var pressTimer;
+      div.addEventListener('mousedown', function(e) { pressTimer = setTimeout(function() { showTip(e); }, 500); });
+      div.addEventListener('mouseup', function() { clearTimeout(pressTimer); hideTip(); });
+      div.addEventListener('mouseleave', function() { clearTimeout(pressTimer); hideTip(); });
+      div.addEventListener('touchstart', function(e) { pressTimer = setTimeout(function() { showTip(e); }, 500); }, { passive: true });
+      div.addEventListener('touchend', function() { clearTimeout(pressTimer); setTimeout(hideTip, 1500); });
+      div.addEventListener('touchcancel', function() { clearTimeout(pressTimer); hideTip(); });
       div.innerHTML = `
         <div class="info">
           <div class="title">${s.title} ${s.isRecurring ? '<span class="recur-icon" title="반복 일정">&#x1F504;</span>' : ''}</div>
