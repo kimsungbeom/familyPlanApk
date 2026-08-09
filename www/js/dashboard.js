@@ -11,6 +11,7 @@
   let currentFamilyId = session.familyId;
   let backupTimer = null;
   let autoBackupEnabled = true;
+  let selectedTargets = new Set();
 
   const container = document.getElementById('calendarContainer');
   const navLabel = document.getElementById('currentLabel');
@@ -19,7 +20,7 @@
   const modal = document.getElementById('scheduleModal');
   const progressSection = document.getElementById('progressSection');
   const searchInput = document.getElementById('searchInput');
-  const filterUser = document.getElementById('filterUser');
+  const filterTarget = document.getElementById('filterTarget');
   const filterDateFrom = document.getElementById('filterDateFrom');
   const filterDateTo = document.getElementById('filterDateTo');
   const filterStatus = document.getElementById('filterStatus');
@@ -73,7 +74,6 @@
     setupModal();
 
     searchInput.addEventListener('input', debounce(loadSchedules, 300));
-    filterUser.addEventListener('change', loadSchedules);
     filterDateFrom.addEventListener('change', loadSchedules);
     filterDateTo.addEventListener('change', loadSchedules);
     filterStatus.addEventListener('change', loadSchedules);
@@ -127,18 +127,50 @@
     document.getElementById('joinKeyDisplay').textContent = family.join_key || '----';
     renderFamilyPanel(family, kickDelegates);
 
-    filterUser.innerHTML = '';
-    members.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = m.name;
-      filterUser.appendChild(opt);
-    });
     if (members.length <= 3) {
-      members.forEach(m => { filterUser.querySelector(`option[value="${m.id}"]`).selected = true; });
+      members.forEach(m => selectedTargets.add(m.id));
     } else {
-      filterUser.querySelector(`option[value="${currentUserId}"]`).selected = true;
+      selectedTargets.add(currentUserId);
     }
+    renderTargetButtons();
+  }
+
+  function renderTargetButtons() {
+    filterTarget.innerHTML = '';
+    if (members.length <= 1) return;
+    members.forEach(m => {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tbtn' + (selectedTargets.has(m.id) ? ' active' : '');
+      btn.dataset.id = m.id;
+      btn.textContent = m.name;
+      btn.addEventListener('click', function() {
+        if (selectedTargets.has(m.id)) {
+          if (selectedTargets.size <= 1) return;
+          selectedTargets.delete(m.id);
+        } else {
+          selectedTargets.add(m.id);
+        }
+        renderTargetButtons();
+        loadSchedules();
+      });
+      filterTarget.appendChild(btn);
+    });
+    var allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = 'tbtn' + (selectedTargets.size === members.length ? ' active' : '');
+    allBtn.textContent = '모두';
+    allBtn.addEventListener('click', function() {
+      if (selectedTargets.size === members.length) {
+        selectedTargets.clear();
+        selectedTargets.add(currentUserId);
+      } else {
+        members.forEach(m => selectedTargets.add(m.id));
+      }
+      renderTargetButtons();
+      loadSchedules();
+    });
+    filterTarget.appendChild(allBtn);
   }
 
   function renderFamilyPanel(family, kickDelegates) {
@@ -230,7 +262,7 @@
 
   async function loadSchedules() {
     if (!currentFamilyId) { allSchedules = []; renderScheduleList(); return; }
-    const selectedUsers = Array.from(filterUser.selectedOptions).map(o => o.value);
+    const selectedUsers = Array.from(selectedTargets);
     const q = searchInput.value.trim();
     const dFrom = filterDateFrom.value;
     const dTo = filterDateTo.value;

@@ -94,7 +94,6 @@
 
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="일정 검색 (제목, 요청자, 소요시간)">
-    <select id="filterUser" multiple size="2" style="height:auto"></select>
     <select id="filterStatus">
       <option value="">전체 상태</option>
       <option value="completed">완료</option>
@@ -102,6 +101,7 @@
     </select>
     <input type="date" id="filterDateFrom" title="시작일">
     <input type="date" id="filterDateTo" title="종료일">
+    <div id="filterTarget" class="target-btn-group" style="width:100%"></div>
   </div>
 
   <div class="family-panel" id="familyPanel" style="display:none">
