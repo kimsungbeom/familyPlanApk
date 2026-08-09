@@ -73,6 +73,15 @@
     setupInlineAdd();
     setupModal();
 
+    var widgetDate = localStorage.getItem('fp_widget');
+    if (widgetDate) {
+      localStorage.removeItem('fp_widget');
+      document.getElementById('inlineDateFrom').value = widgetDate;
+      document.getElementById('inlineDateTo').value = widgetDate;
+      var titleEl = document.getElementById('inlineTitle');
+      if (titleEl) titleEl.focus();
+    }
+
     searchInput.addEventListener('input', debounce(loadSchedules, 300));
     filterDateFrom.addEventListener('change', loadSchedules);
     filterDateTo.addEventListener('change', loadSchedules);
