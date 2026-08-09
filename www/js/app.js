@@ -154,7 +154,7 @@ function showDebugToast(msg) {
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 // ─── THEME ──────────────────────────────────
-const THEME_DEFAULTS = { accent: '#03c75a', bgColor: '#f6f6f7' };
+const THEME_DEFAULTS = { accent: '#03c75a', bgColor: '#f6f6f7', fontSize: 12 };
 
 function adjustBrightness(hex, amount) {
   var num = parseInt(hex.replace('#', ''), 16);
@@ -170,7 +170,7 @@ async function loadTheme() {
     var v = await Capacitor.Plugins.Preferences.get({ key: 'fp_theme' });
     if (v && v.value) {
       var parsed = JSON.parse(v.value);
-      theme = { accent: parsed.accent || THEME_DEFAULTS.accent, bgColor: parsed.bgColor || THEME_DEFAULTS.bgColor };
+      theme = { accent: parsed.accent || THEME_DEFAULTS.accent, bgColor: parsed.bgColor || THEME_DEFAULTS.bgColor, fontSize: Number(parsed.fontSize) || THEME_DEFAULTS.fontSize };
     }
   } catch {}
   applyTheme(theme);
@@ -185,6 +185,19 @@ function applyTheme(theme) {
     root.setProperty('--color-accent-hover', adjustBrightness(theme.accent, -10));
   }
   if (theme.bgColor) root.setProperty('--color-surface-raised', theme.bgColor);
+  if (theme.fontSize) {
+    var scale = theme.fontSize / 12;
+    root.setProperty('--font-size-base', Math.round(12 * scale) + 'px');
+    root.setProperty('--font-size-xs', Math.round(10 * scale) + 'px');
+    root.setProperty('--font-size-sm', Math.round(11 * scale) + 'px');
+    root.setProperty('--font-size-md', Math.round(12 * scale) + 'px');
+    root.setProperty('--font-size-lg', Math.round(13 * scale) + 'px');
+    root.setProperty('--font-size-xl', Math.round(14 * scale) + 'px');
+    root.setProperty('--font-size-2xl', Math.round(15 * scale) + 'px');
+    root.setProperty('--font-size-3xl', Math.round(16 * scale) + 'px');
+    root.setProperty('--font-size-4xl', Math.round(18 * scale) + 'px');
+    root.setProperty('--line-height-base', Math.round(14.4 * scale) + 'px');
+  }
 }
 
 async function saveTheme(theme) {
