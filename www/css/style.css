@@ -850,3 +850,36 @@ a:hover { text-decoration: underline; }
   align-self: flex-start;
   margin-top: 4px;
 }
+
+/* ─── GROUP DROPDOWN ────────────── */
+
+#groupSwitcher {
+  position: relative;
+}
+#groupSwitchBtn {
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+}
+.group-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 500;
+  min-width: 140px;
+  background: var(--color-surface-base);
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-xs);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+.group-opt {
+  padding: 8px 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.group-opt:hover { background: var(--color-surface-raised); }
+.group-opt.active { background: #e8f5e9; font-weight: 700; }
+.group-opt-sep { border-top: 1px solid var(--color-border-muted); padding: 0; cursor: default; }
+.group-opt-sep:hover { background: none; }

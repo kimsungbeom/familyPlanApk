@@ -208,4 +208,12 @@ async function getGroupName() {
 function saveGroupName(name) {
   localStorage.setItem('fp_group_name', name || 'FAMILY PLAN');
 }
+
+async function switchFamily(familyId) {
+  var s = await getSession();
+  if (!s || !s.id) return;
+  await sb.from('users').update({ family_id: familyId }).eq('id', s.id);
+  await saveSession({ id: s.id, name: s.name, familyId: familyId });
+  window.location.reload();
+}
 // ──────────────────────────────────────────

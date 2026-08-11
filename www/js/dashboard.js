@@ -57,6 +57,7 @@
 
     await loadFamilyData();
     await loadSettings();
+    loadGroupList();
     await loadAll();
 
     document.getElementById('viewTabs').addEventListener('click', e => {
@@ -858,6 +859,89 @@
     if (name) { if (title) title.textContent = name + ' 구성원 관리'; if (h1) h1.textContent = name; }
     saveGroupName(name);
   }
+
+  // GROUP SWITCHER
+  var groupList = [];
+  async function loadGroupList() {
+    var r = await sb.from('family_members').select('family_id').eq('user_id', currentUserId);
+    if (!r.data || r.data.length <= 1) return;
+    var ids = r.data.map(m => m.family_id);
+    var r2 = await sb.from('families').select('family_id, group_name').in('family_id', ids);
+    groupList = (r2.data || []).map(f => ({ id: f.family_id, name: f.group_name || f.family_id }));
+    renderGroupSwitcher();
+  }
+
+  function renderGroupSwitcher() {
+    var sw = document.getElementById('groupSwitcher');
+    if (!sw || groupList.length < 2) { if (sw) sw.style.display = 'none'; return; }
+    sw.style.display = 'inline-block';
+    var dd = document.getElementById('groupDropdown');
+    var html = '';
+    groupList.forEach(function(g) {
+      html += '<div class="group-opt' + (g.id === currentFamilyId ? ' active' : '') + '" onclick="window.switchGroup(\'' + g.id + '\')">' + escapeHtml(g.name) + '</div>';
+    });
+    html += '<div class="group-opt group-opt-sep"></div>';
+    html += '<div class="group-opt" id="optCreateGroup">+ 새 그룹 만들기</div>';
+    html += '<div class="group-opt" id="optJoinGroup">+ 그룹 참여하기</div>';
+    dd.innerHTML = html;
+
+    document.getElementById('optCreateGroup').addEventListener('click', function() {
+      dd.style.display = 'none';
+      openGroupModal('create');
+    });
+    document.getElementById('optJoinGroup').addEventListener('click', function() {
+      dd.style.display = 'none';
+      openGroupModal('join');
+    });
+  }
+  window.switchGroup = function(fid) { switchFamily(fid); };
+
+  document.getElementById('groupSwitchBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var dd = document.getElementById('groupDropdown');
+    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+  });
+  document.addEventListener('click', function() {
+    document.getElementById('groupDropdown').style.display = 'none';
+  });
+
+  // GROUP CREATE/JOIN MODAL
+  function openGroupModal(mode) {
+    var modal = document.getElementById('groupModal');
+    document.getElementById('groupModalTitle').textContent = mode === 'create' ? '새 그룹 만들기' : '그룹 참여하기';
+    document.getElementById('groupNameField').style.display = mode === 'create' ? '' : 'none';
+    document.getElementById('groupKeyField').style.display = mode === 'join' ? '' : 'none';
+    document.getElementById('groupName').value = '';
+    document.getElementById('groupJoinKey').value = '';
+    modal.style.display = 'flex';
+  }
+  document.getElementById('groupCancelBtn').addEventListener('click', function() {
+    document.getElementById('groupModal').style.display = 'none';
+  });
+  document.getElementById('groupModal').addEventListener('click', function(e) {
+    if (e.target === document.getElementById('groupModal')) document.getElementById('groupModal').style.display = 'none';
+  });
+  document.getElementById('groupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var modal = document.getElementById('groupModal');
+    var isCreate = document.getElementById('groupModalTitle').textContent.includes('만들기');
+    if (isCreate) {
+      var name = document.getElementById('groupName').value.trim().slice(0, 30) || '우리가족';
+      var key = await getUniqueFamilyKey();
+      await sb.from('families').insert({ family_id: key, join_key: key, group_name: name, created_by: currentUserId });
+      await sb.from('family_members').insert({ family_id: key, user_id: currentUserId });
+    } else {
+      var key = document.getElementById('groupJoinKey').value.trim().toUpperCase();
+      if (key.length !== 4) return;
+      var r = await sb.from('families').select('family_id').eq('family_id', key).maybeSingle();
+      if (!r.data) { alert('존재하지 않는 그룹 키입니다.'); return; }
+      var existing = await sb.from('family_members').select('user_id').eq('family_id', key).eq('user_id', currentUserId).maybeSingle();
+      if (existing.data) { alert('이미 가입된 그룹입니다.'); return; }
+      await sb.from('family_members').insert({ family_id: key, user_id: currentUserId });
+    }
+    modal.style.display = 'none';
+    await switchFamily(key);
+  });
 
   // SETTINGS MODAL
   function setupSettingsModal() {
