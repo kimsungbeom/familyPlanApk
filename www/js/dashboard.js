@@ -326,10 +326,10 @@
       ];
       div.setAttribute('data-tooltip', tipParts.join('<br>'));
       var pressTimer;
-      div.addEventListener('mousedown', function(e) { pressTimer = setTimeout(function() { showTip(div); }, 500); });
+      div.addEventListener('mousedown', function(e) { pressTimer = setTimeout(function() { showTip(div); var input = document.getElementById('inlineTitle'); if (input) { input.value = s.title; input.focus(); input.select(); } }, 500); });
       div.addEventListener('mouseup', function() { clearTimeout(pressTimer); });
       div.addEventListener('mouseleave', function() { clearTimeout(pressTimer); });
-      div.addEventListener('touchstart', function(e) { pressTimer = setTimeout(function() { showTip(div); }, 500); }, { passive: true });
+      div.addEventListener('touchstart', function(e) { pressTimer = setTimeout(function() { showTip(div); var input = document.getElementById('inlineTitle'); if (input) { input.value = s.title; input.focus(); input.select(); } }, 500); }, { passive: true });
       div.addEventListener('touchend', function() { clearTimeout(pressTimer); });
       div.addEventListener('touchcancel', function() { clearTimeout(pressTimer); });
       div.innerHTML = `
