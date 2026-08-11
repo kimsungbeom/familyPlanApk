@@ -633,6 +633,21 @@
     document.getElementById('schedDateFrom').addEventListener('change', () => {
       document.getElementById('schedDateTo').value = document.getElementById('schedDateFrom').value;
     });
+    document.querySelectorAll('.time-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = document.getElementById(this.dataset.target);
+        var delta = parseInt(this.dataset.delta);
+        var val = target.value;
+        if (!val) val = '00:00';
+        var parts = val.split(':');
+        var h = parseInt(parts[0]), m = parseInt(parts[1]);
+        var total = h * 60 + m + delta;
+        if (total < 0) total += 24 * 60;
+        if (total >= 24 * 60) total -= 24 * 60;
+        var nh = Math.floor(total / 60), nm = total % 60;
+        target.value = String(nh).padStart(2, '0') + ':' + String(nm).padStart(2, '0');
+      });
+    });
     document.getElementById('schedProgress').addEventListener('input', (e) => {
       document.getElementById('schedProgressVal').textContent = e.target.value + '%';
     });

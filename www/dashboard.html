@@ -143,16 +143,20 @@
       <div class="form-row">
         <div class="form-group">
           <label>FROM</label>
-          <div style="display:flex;gap:4px">
+          <div style="display:flex;gap:2px">
             <input type="date" id="schedDateFrom" required style="flex:2">
+            <button type="button" class="time-btn" data-target="schedTimeFrom" data-delta="-15" title="-15분">−</button>
             <input type="time" id="schedTimeFrom" style="flex:1">
+            <button type="button" class="time-btn" data-target="schedTimeFrom" data-delta="15" title="+15분">+</button>
           </div>
         </div>
         <div class="form-group">
           <label>TO</label>
-          <div style="display:flex;gap:4px">
+          <div style="display:flex;gap:2px">
             <input type="date" id="schedDateTo" style="flex:2">
+            <button type="button" class="time-btn" data-target="schedTimeTo" data-delta="-15" title="-15분">−</button>
             <input type="time" id="schedTimeTo" style="flex:1">
+            <button type="button" class="time-btn" data-target="schedTimeTo" data-delta="15" title="+15分">+</button>
           </div>
         </div>
       </div>
