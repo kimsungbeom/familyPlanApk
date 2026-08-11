@@ -332,6 +332,7 @@ a:hover { text-decoration: underline; }
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
+  align-self: stretch;
   transition: background .15s;
 }
 .time-btn:hover { background: var(--color-surface-raised); color: var(--color-accent); }

@@ -35,16 +35,20 @@
     <div class="form-row">
       <div class="form-group">
         <label style="font-size:var(--font-size-xs);margin-bottom:2px">FROM</label>
-        <div style="display:flex;gap:4px">
+        <div style="display:flex;gap:2px">
           <input type="date" id="inlineDateFrom" style="flex:2">
+          <button type="button" class="time-btn" data-target="inlineTimeFrom" data-delta="-15" title="-15분">−</button>
           <input type="time" id="inlineTimeFrom" style="flex:1">
+          <button type="button" class="time-btn" data-target="inlineTimeFrom" data-delta="15" title="+15분">+</button>
         </div>
       </div>
       <div class="form-group">
         <label style="font-size:var(--font-size-xs);margin-bottom:2px">TO</label>
-        <div style="display:flex;gap:4px">
+        <div style="display:flex;gap:2px">
           <input type="date" id="inlineDateTo" style="flex:2">
+          <button type="button" class="time-btn" data-target="inlineTimeTo" data-delta="-15" title="-15분">−</button>
           <input type="time" id="inlineTimeTo" style="flex:1">
+          <button type="button" class="time-btn" data-target="inlineTimeTo" data-delta="15" title="+15분">+</button>
         </div>
       </div>
     </div>
