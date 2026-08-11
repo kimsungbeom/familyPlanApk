@@ -859,6 +859,10 @@ a:hover { text-decoration: underline; }
 #groupSwitchBtn {
   font-size: var(--font-size-xs);
   padding: 2px 6px;
+  margin-top: -5px;
+}
+#familyPanelTitle {
+  margin-top: 5px;
 }
 .group-dropdown {
   position: absolute;
