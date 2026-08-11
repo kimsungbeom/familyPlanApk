@@ -307,6 +307,7 @@ a:hover { text-decoration: underline; }
   transition: background 0.15s, transform 0.1s;
 }
 .btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--color-accent); color: #fff; }
 .btn-primary:hover { background: var(--color-accent-hover); }
 .btn-danger { background: var(--color-danger); color: #fff; }
