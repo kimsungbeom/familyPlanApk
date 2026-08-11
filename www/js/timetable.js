@@ -11,14 +11,16 @@
 
   const header = document.getElementById('header');
   if (header) {
+    var groupName = await getGroupName();
     header.innerHTML = `<div class="header" style="margin-bottom:0">
-      <h1>FAMILY PLAN</h1>
+      <h1></h1>
       <div class="header-nav">
         <a href="dashboard.html">메인</a>
         <a href="timetable.html" style="font-weight:700;color:var(--color-accent)">시간표</a>
         <a href="mypage.html">MY</a>
         <button id="ttLogoutBtn">LogOut</button>
       </div></div>`;
+    header.querySelector('.header h1').textContent = groupName;
     document.getElementById('ttLogoutBtn').addEventListener('click', async () => {
       await clearSession();
       window.location.href = 'login.html';

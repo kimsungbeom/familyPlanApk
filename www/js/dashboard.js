@@ -830,6 +830,7 @@
     const title = document.getElementById('familyPanelTitle');
     const h1 = document.querySelector('.header h1');
     if (name) { if (title) title.textContent = name + ' 구성원 관리'; if (h1) h1.textContent = name; }
+    saveGroupName(name);
   }
 
   // SETTINGS MODAL

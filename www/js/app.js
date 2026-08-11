@@ -216,4 +216,19 @@ async function saveTheme(theme) {
   } catch {}
   applyTheme(theme);
 }
+
+async function getGroupName() {
+  var cached = localStorage.getItem('fp_group_name');
+  if (cached) return cached;
+  var s = await getSession();
+  if (!s || !s.familyId) return 'FAMILY PLAN';
+  var r = await sb.from('families').select('group_name').eq('family_id', s.familyId).maybeSingle();
+  var name = (r.data && r.data.group_name) ? r.data.group_name : 'FAMILY PLAN';
+  localStorage.setItem('fp_group_name', name);
+  return name;
+}
+
+function saveGroupName(name) {
+  localStorage.setItem('fp_group_name', name || 'FAMILY PLAN');
+}
 // ──────────────────────────────────────────
