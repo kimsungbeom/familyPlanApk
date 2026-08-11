@@ -322,7 +322,6 @@ a:hover { text-decoration: underline; }
 
 .time-btn {
   width: 24px;
-  height: 100%;
   border: 1px solid var(--color-border-muted);
   border-radius: var(--radius-xs);
   background: var(--color-surface-base);
@@ -333,6 +332,7 @@ a:hover { text-decoration: underline; }
   padding: 0;
   flex-shrink: 0;
   align-self: stretch;
+  margin: 0 3px;
   transition: background .15s;
 }
 .time-btn:hover { background: var(--color-surface-raised); color: var(--color-accent); }
