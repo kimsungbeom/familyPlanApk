@@ -602,6 +602,7 @@
           await saveRow(row, recurring, null);
         }
         document.getElementById('inlineTitle').value = '';
+        document.getElementById('inlineTitle').style.height = 'auto';
         document.getElementById('inlineRequester').value = '';
         document.getElementById('inlineProgress').value = 0;
         document.getElementById('inlineProgressVal').textContent = '0%';
