@@ -522,7 +522,7 @@
     inlineTargetAll.appendChild(allBtn);
     document.getElementById('inlineDateFrom').value = getToday();
 
-    (async function loadDefaultTime() {
+    async function refreshDefaultTime() {
       const today = getToday().replace(/-/g,'');
       const { data } = await sb.from('schedules').select('scheduled_to')
         .eq('family_id', currentFamilyId).eq('target_user_id', currentUserId)
@@ -539,7 +539,8 @@
       const [h, m] = fromTime.split(':');
       const toDate = new Date(2026,0,1,parseInt(h),parseInt(m)+30);
       document.getElementById('inlineTimeTo').value = String(toDate.getHours()).padStart(2,'0')+':'+String(toDate.getMinutes()).padStart(2,'0');
-    })();
+    }
+    refreshDefaultTime();
 
     document.getElementById('inlineProgress').addEventListener('input', (e) => {
       document.getElementById('inlineProgressVal').textContent = e.target.value + '%';
@@ -597,6 +598,7 @@
         document.getElementById('inlineRecurring').value = '';
         document.getElementById('inlineRecurEnd').value = '';
         document.getElementById('inlineRecurEnd').style.display = 'none';
+        await refreshDefaultTime();
         loadAll();
       } finally {
         isSaving = false;
