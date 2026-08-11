@@ -335,7 +335,7 @@
       div.addEventListener('dblclick', function(e) {
         e.preventDefault();
         var input = document.getElementById('inlineTitle');
-        if (input) { input.value = (input.value ? input.value + ' ' : '') + s.title; input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
+        if (input) { input.value = (input.value ? input.value + ' ' : '') + s.title; input.focus(); input.setSelectionRange(input.value.length, input.value.length); input.style.height = 'auto'; input.style.height = input.scrollHeight + 'px'; }
       });
       div.innerHTML = `
         <div class="info">
@@ -545,6 +545,12 @@
       document.getElementById('inlineTimeTo').value = String(toDate.getHours()).padStart(2,'0')+':'+String(toDate.getMinutes()).padStart(2,'0');
     }
     refreshDefaultTime();
+
+    var inlineTitle = document.getElementById('inlineTitle');
+    inlineTitle.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+    });
 
     document.getElementById('inlineProgress').addEventListener('input', (e) => {
       document.getElementById('inlineProgressVal').textContent = e.target.value + '%';

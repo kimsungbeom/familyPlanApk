@@ -659,6 +659,21 @@ a:hover { text-decoration: underline; }
 .inline-add-bar select { flex: 1 1 80px; min-width: 70px; }
 .inline-add-bar input[type="time"] { flex: 0.5 1 70px; min-width: 70px; }
 .inline-add-bar .btn { flex-shrink: 0; padding: 6px 14px; white-space: nowrap; }
+.inline-add-bar textarea {
+  flex: 3 1 150px;
+  min-width: 120px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
+  background: var(--color-surface-base);
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.4;
+}
+.inline-add-bar textarea:focus { border-color: var(--color-accent); }
 
 .inline-add-detail {
   background: var(--color-surface-base);
