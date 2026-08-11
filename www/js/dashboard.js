@@ -864,7 +864,7 @@
   var groupList = [];
   async function loadGroupList() {
     var r = await sb.from('family_members').select('family_id').eq('user_id', currentUserId);
-    if (!r.data || r.data.length <= 1) return;
+    if (!r.data || r.data.length === 0) return;
     var ids = r.data.map(m => m.family_id);
     var r2 = await sb.from('families').select('family_id, group_name').in('family_id', ids);
     groupList = (r2.data || []).map(f => ({ id: f.family_id, name: f.group_name || f.family_id }));
@@ -873,7 +873,7 @@
 
   function renderGroupSwitcher() {
     var sw = document.getElementById('groupSwitcher');
-    if (!sw || groupList.length < 2) { if (sw) sw.style.display = 'none'; return; }
+    if (!sw || groupList.length === 0) { if (sw) sw.style.display = 'none'; return; }
     sw.style.display = 'inline-block';
     var dd = document.getElementById('groupDropdown');
     var html = '';
