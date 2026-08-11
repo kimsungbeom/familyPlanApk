@@ -216,4 +216,22 @@ async function switchFamily(familyId) {
   await saveSession({ id: s.id, name: s.name, familyId: familyId });
   window.location.reload();
 }
+
+function generateUniqueKey() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var result = '';
+  var values = new Uint32Array(4);
+  crypto.getRandomValues(values);
+  for (var i = 0; i < 4; i++) result += chars[values[i] % chars.length];
+  return result;
+}
+
+async function getUniqueFamilyKey() {
+  for (var i = 0; i < 10; i++) {
+    var key = generateUniqueKey();
+    var r = await sb.from('families').select('family_id').eq('family_id', key).maybeSingle();
+    if (!r.data) return key;
+  }
+  return generateUniqueKey();
+}
 // ──────────────────────────────────────────
