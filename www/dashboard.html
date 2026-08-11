@@ -193,37 +193,11 @@
         <label for="settingsGroupName">그룹명</label>
         <input type="text" id="settingsGroupName" placeholder="가족 그룹 이름 (예: 김씨 가족)" maxlength="30">
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="settingsAccent">강조색</label>
-          <input type="color" id="settingsAccent" value="#03c75a">
-        </div>
-        <div class="form-group">
-          <label for="settingsBgColor">배경색</label>
-          <input type="color" id="settingsBgColor" value="#f6f6f7">
-        </div>
-      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" id="settingsCancelBtn">취소</button>
         <button type="submit" class="btn btn-primary">저장</button>
       </div>
     </form>
-    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--color-border-muted)">
-      <h4 style="font-size:var(--font-size-lg);font-weight:700;margin-bottom:10px;color:var(--color-text-primary)">데이터 관리</h4>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn btn-outline btn-sm" id="exportBtn">내보내기</button>
-        <label class="btn btn-outline btn-sm" for="importFile" style="cursor:pointer">불러오기</label>
-        <input type="file" id="importFile" accept=".json" style="display:none">
-        <button type="button" class="btn btn-danger btn-sm" id="resetBtn">전체 초기화</button>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-        <span style="font-size:var(--font-size-xs);color:var(--color-text-secondary)" id="backupInfo"></span>
-        <label style="font-size:var(--font-size-xs);color:var(--color-text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer">
-          <input type="checkbox" id="autoBackupToggle" checked> 자동 백업
-        </label>
-      </div>
-      <div id="dataMsg" style="font-size:var(--font-size-xs);margin-top:6px;display:none"></div>
-    </div>
   </div>
 </div>
 

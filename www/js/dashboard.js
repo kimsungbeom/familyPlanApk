@@ -9,8 +9,6 @@
   let chartInstances = {};
   let currentUserId = session.id;
   let currentFamilyId = session.familyId;
-  let backupTimer = null;
-  let autoBackupEnabled = true;
   let selectedTargets = new Set();
   let isSaving = false;
 
@@ -106,7 +104,6 @@
     });
 
     setupSettingsModal();
-    setupDataManagement();
     registerFCM(currentUserId);
   }
 
@@ -841,8 +838,6 @@
     document.getElementById('settingsBtn')?.addEventListener('click', async () => {
       const { data: fam } = await sb.from('families').select('*').eq('family_id', currentFamilyId).maybeSingle();
       document.getElementById('settingsGroupName').value = (fam && fam.group_name) || '';
-      document.getElementById('settingsAccent').value = (fam && fam.theme_accent) || '#03c75a';
-      document.getElementById('settingsBgColor').value = (fam && fam.theme_bg_color) || '#f6f6f7';
       sm.style.display = 'flex';
     });
     document.getElementById('settingsCancelBtn')?.addEventListener('click', () => { sm.style.display = 'none'; });
@@ -850,107 +845,19 @@
     document.getElementById('settingsForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       await sb.from('families').update({
-        group_name: document.getElementById('settingsGroupName').value.trim().slice(0, 30),
-        theme_accent: document.getElementById('settingsAccent').value,
-        theme_bg_color: document.getElementById('settingsBgColor').value
+        group_name: document.getElementById('settingsGroupName').value.trim().slice(0, 30)
       }).eq('family_id', currentFamilyId);
       const { data: fam } = await sb.from('families').select('*').eq('family_id', currentFamilyId).maybeSingle();
-      if (fam) { applyTheme({ accent: fam.theme_accent, bgColor: fam.theme_bg_color }); saveTheme({ accent: fam.theme_accent, bgColor: fam.theme_bg_color }); updateGroupName(fam.group_name); }
+      if (fam) updateGroupName(fam.group_name);
       sm.style.display = 'none';
     });
   }
 
-  // DATA MANAGEMENT
-  function setupDataManagement() {
-    const dm = document.getElementById('dataMsg');
-    document.getElementById('exportBtn')?.addEventListener('click', async () => {
-      const { data } = await sb.from('schedules').select('*').eq('family_id', currentFamilyId);
-      const exportData = { exportedAt: new Date().toISOString(), familyId: currentFamilyId, schedules: (data || []).map(mapSchedule) };
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = 'familyplans_backup.json'; a.click();
-      URL.revokeObjectURL(url);
-      dm.style.display = 'block'; dm.style.color = 'var(--color-accent)'; dm.textContent = '데이터를 파일로 저장했습니다.';
-      setTimeout(() => { dm.style.display = 'none'; }, 3000);
-    });
-
-    document.getElementById('importFile')?.addEventListener('change', async () => {
-      const file = document.getElementById('importFile').files[0];
-      if (!file) return;
-      if (!confirm('기존 데이터에 추가됩니다. 계속하시겠습니까?')) { document.getElementById('importFile').value = ''; return; }
-      try {
-        const text = await file.text();
-        const parsed = JSON.parse(text);
-        const scheds = parsed.schedules || parsed;
-        function uuid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c=='x'?r:(r&0x3|0x8)).toString(16); }); }
-        const rows = scheds.map(s => ({
-          schedule_id: uuid(), family_id: currentFamilyId, title: s.title || s.scheduleName || '', requester: s.requester || '',
-          target_user_id: s.targetUserId || currentUserId,
-          scheduled_from: s.from || s.scheduledFrom || (s.date ? s.date.replace(/-/g,'')+'0000' : ''),
-          scheduled_to: s.to || s.scheduledTo || (s.date ? s.date.replace(/-/g,'')+'2359' : ''),
-          progress: s.progress || 0, completed: s.completed || false,
-          is_recurring: s.isRecurring || false, recurring_type: s.recurringType || null, recurring_end_date: s.recurringEndDate || null, created_by: currentUserId
-        }));
-        const { error } = await sb.from('schedules').insert(rows);
-        if (error) { dm.style.color = 'var(--color-danger)'; dm.textContent = error.message; }
-        else { dm.style.color = 'var(--color-accent)'; dm.textContent = `${rows.length}건의 일정을 가져왔습니다.`; }
-      } catch {
-        dm.style.color = 'var(--color-danger)'; dm.textContent = '파일 형식이 올바르지 않습니다.';
-      }
-      dm.style.display = 'block'; document.getElementById('importFile').value = '';
-      setTimeout(() => { dm.style.display = 'none'; }, 4000);
-      loadAll();
-    });
-
-    document.getElementById('autoBackupToggle')?.addEventListener('change', () => {
-      autoBackupEnabled = document.getElementById('autoBackupToggle').checked;
-      if (autoBackupEnabled) startAutoBackup();
-      else if (backupTimer) { clearInterval(backupTimer); backupTimer = null; }
-      localStorage.setItem('fp_autobackup', autoBackupEnabled ? '1' : '0');
-    });
-
-    document.getElementById('resetBtn')?.addEventListener('click', async () => {
-      const { data: fam } = await sb.from('families').select('created_by').eq('family_id', currentFamilyId).maybeSingle();
-      if (!fam || fam.created_by !== currentUserId) { dm.style.display='block'; dm.style.color='var(--color-danger)'; dm.textContent='그룹장만 초기화할 수 있습니다.'; setTimeout(()=>{dm.style.display='none';},3000); return; }
-      if (!confirm('그룹의 모든 일정 데이터가 삭제됩니다. 정말 초기화하시겠습니까?')) return;
-      await sb.from('schedules').delete().eq('family_id', currentFamilyId);
-      dm.style.display='block'; dm.style.color='var(--color-accent)'; dm.textContent='모든 일정이 초기화되었습니다.';
-      setTimeout(()=>{dm.style.display='none';},3000);
-      loadAll();
-    });
-  }
-
-  // BACKUP
-  function getBackupKey() { return 'fp_backup_' + currentFamilyId; }
-  function loadLocalBackup() { try { const raw = localStorage.getItem(getBackupKey()); return raw ? JSON.parse(raw) : null; } catch { return null; } }
-  function saveLocalBackup(schedules) { try { localStorage.setItem(getBackupKey(), JSON.stringify({ updatedAt: new Date().toISOString(), familyId: currentFamilyId, count: schedules.length, schedules })); updateBackupInfo(); } catch {} }
-  function updateBackupInfo() {
-    const el = document.getElementById('backupInfo'); if (!el) return;
-    const backup = loadLocalBackup();
-    if (backup && backup.updatedAt) {
-      const d = new Date(backup.updatedAt);
-      const ago = Math.floor((Date.now() - d.getTime()) / 60000);
-      el.textContent = `로컬 백업: ${ago < 1 ? '방금 전' : ago < 60 ? ago + '분 전' : Math.floor(ago/60) + '시간 전'} (${backup.count}건)`;
-    } else { el.textContent = '로컬 백업 없음'; }
-  }
-  function startAutoBackup() {
-    autoBackupEnabled = localStorage.getItem('fp_autobackup') !== '0';
-    document.getElementById('autoBackupToggle').checked = autoBackupEnabled;
-    if (backupTimer) clearInterval(backupTimer);
-    if (!autoBackupEnabled) return;
-    doBackup();
-    backupTimer = setInterval(doBackup, 5 * 60 * 1000);
-  }
-  async function doBackup() {
-    if (!autoBackupEnabled) return;
-    const { data } = await sb.from('schedules').select('*').eq('family_id', currentFamilyId);
-    saveLocalBackup((data || []).map(mapSchedule));
-  }
   function debounce(fn, ms) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; }
   function escapeHtml(text) {
     if (!text) return '';
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  init().then(() => { startAutoBackup(); });
+  init();
 })();
