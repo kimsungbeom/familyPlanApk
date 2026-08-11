@@ -335,7 +335,7 @@
       div.addEventListener('dblclick', function(e) {
         e.preventDefault();
         var input = document.getElementById('inlineTitle');
-        if (input) { input.value = s.title; input.focus(); input.select(); }
+        if (input) { input.value = s.title + ' '; input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
       });
       div.innerHTML = `
         <div class="info">
