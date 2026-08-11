@@ -1,13 +1,22 @@
 (function() {
   const path = window.location.pathname.replace(/\/$/, '').split('/').pop() || 'index.html';
 
-  function generateJoinKey() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let key = '';
-    for (let i = 0; i < 4; i++) {
-      key += chars[Math.floor(Math.random() * chars.length)];
+  function generateUniqueKey() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var result = '';
+    var values = new Uint32Array(4);
+    crypto.getRandomValues(values);
+    for (var i = 0; i < 4; i++) result += chars[values[i] % chars.length];
+    return result;
+  }
+
+  async function getUniqueFamilyKey() {
+    for (var i = 0; i < 10; i++) {
+      var key = generateUniqueKey();
+      var r = await sb.from('families').select('family_id').eq('family_id', key).maybeSingle();
+      if (!r.data) return key;
     }
-    return key;
+    return generateUniqueKey();
   }
 
   if (path === 'login.html' || path === 'login' || path === '') {
@@ -42,6 +51,7 @@
   if (path === 'signup.html' || path === 'signup') {
     let mode = 'create';
     const modeTabs = document.getElementById('modeTabs');
+    getUniqueFamilyKey().then(k => { document.getElementById('keyInput').value = k; });
     if (modeTabs) {
       modeTabs.addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-mode]');
@@ -53,10 +63,15 @@
         const hint = document.getElementById('keyHint');
         if (mode === 'create') {
           label.textContent = '그룹 키 (4자리)';
-          hint.textContent = '새로운 가족 그룹을 생성할 4자리 키입니다. 다른 가족원과 공유하지 마세요.';
+          hint.textContent = '자동 생성되는 그룹 키입니다. 가족원에게 이 키를 공유하세요.';
+          document.getElementById('keyInput').readOnly = true;
+          getUniqueFamilyKey().then(k => { document.getElementById('keyInput').value = k; });
         } else {
           label.textContent = '참여 키 (4자리)';
-          hint.textContent = '가족 그룹 생성자에게 받은 4자리 참여 키를 입력하세요.';
+          hint.textContent = '가족 그룹 생성자에게 받은 4자리 키를 입력하세요.';
+          document.getElementById('keyInput').readOnly = false;
+          document.getElementById('keyInput').value = '';
+          document.getElementById('keyInput').focus();
         }
       });
     }
@@ -93,26 +108,25 @@
             showError(null, '이미 사용 중인 그룹 키입니다.');
             return;
           }
-          const joinKey = generateJoinKey();
 
           const { error: uErr } = await sb.from('users').insert({ id, pass: hashedPass, name, family_id: key });
           if (uErr) { showError(null, '사용자 등록 실패: ' + uErr.message); return; }
 
-          const { error: fErr } = await sb.from('families').insert({ family_id: key, join_key: joinKey, created_by: id });
+          const { error: fErr } = await sb.from('families').insert({ family_id: key, join_key: key, created_by: id });
           if (fErr) { showError(null, '그룹 생성 실패: ' + fErr.message); return; }
 
           const { error: mErr } = await sb.from('family_members').insert({ family_id: key, user_id: id });
           if (mErr) { showError(null, '멤버 등록 실패: ' + mErr.message); return; }
 
-          showSuccess(null, `회원가입 완료! 참여 키: <strong>${joinKey}</strong> (가족원에게 공유하세요)`);
+          showSuccess(null, `회원가입 완료! 그룹 키: <strong>${key}</strong> (가족원에게 공유하세요)`);
           setTimeout(() => { window.location.href = 'login.html'; }, 2500);
           return;
         }
 
         if (mode === 'join') {
-          const { data: family } = await sb.from('families').select('*').eq('join_key', key).maybeSingle();
+          const { data: family } = await sb.from('families').select('*').eq('family_id', key).maybeSingle();
           if (!family) {
-            showError(null, '존재하지 않는 참여 키입니다.');
+            showError(null, '존재하지 않는 그룹 키입니다.');
             return;
           }
           const { data: existingMember } = await sb.from('family_members').select('user_id').eq('family_id', family.family_id).eq('user_id', id).maybeSingle();
