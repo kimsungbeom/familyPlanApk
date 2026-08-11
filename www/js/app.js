@@ -154,7 +154,14 @@ function showDebugToast(msg) {
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
 // ─── THEME ──────────────────────────────────
-const THEME_DEFAULTS = { accent: '#03c75a', bgColor: '#f6f6f7', fontSize: 12 };
+var FONTS = {
+  'default': "'Nanum Gothic', NanumGothic, 'Malgun Gothic', Dotum, 'Apple SD Gothic Neo', sans-serif",
+  'sans-serif': 'sans-serif',
+  'serif': 'serif',
+  'monospace': 'monospace'
+};
+var FONT_NAMES = { 'default': '기본(나눔고딕)', 'sans-serif': '고딕', 'serif': '명조', 'monospace': '코딩체' };
+const THEME_DEFAULTS = { accent: '#03c75a', bgColor: '#f6f6f7', fontSize: 12, fontFamily: 'default' };
 
 function adjustBrightness(hex, amount) {
   var num = parseInt(hex.replace('#', ''), 16);
@@ -170,7 +177,7 @@ async function loadTheme() {
     var v = await Capacitor.Plugins.Preferences.get({ key: 'fp_theme' });
     if (v && v.value) {
       var parsed = JSON.parse(v.value);
-      theme = { accent: parsed.accent || THEME_DEFAULTS.accent, bgColor: parsed.bgColor || THEME_DEFAULTS.bgColor, fontSize: Number(parsed.fontSize) || THEME_DEFAULTS.fontSize };
+      theme = { accent: parsed.accent || THEME_DEFAULTS.accent, bgColor: parsed.bgColor || THEME_DEFAULTS.bgColor, fontSize: Number(parsed.fontSize) || THEME_DEFAULTS.fontSize, fontFamily: parsed.fontFamily || THEME_DEFAULTS.fontFamily };
     }
   } catch {}
   applyTheme(theme);
@@ -185,6 +192,9 @@ function applyTheme(theme) {
     root.setProperty('--color-accent-hover', adjustBrightness(theme.accent, -10));
   }
   if (theme.bgColor) root.setProperty('--color-surface-raised', theme.bgColor);
+  if (theme.fontFamily && FONTS[theme.fontFamily]) {
+    root.setProperty('--font-family-primary', FONTS[theme.fontFamily]);
+  }
   if (theme.fontSize) {
     var scale = theme.fontSize / 12;
     root.setProperty('--font-size-base', Math.round(12 * scale) + 'px');

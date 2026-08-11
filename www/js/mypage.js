@@ -77,20 +77,26 @@
   var bgInput = document.getElementById('themeBgColor');
   var fontSizeSlider = document.getElementById('themeFontSize');
   var fontSizeVal = document.getElementById('fontSizeVal');
+  var fontFamilySelect = document.getElementById('themeFontFamily');
+  function currentFont() { return fontFamilySelect ? fontFamilySelect.value : 'default'; }
   if (accentInput) accentInput.value = currentTheme.accent;
   if (bgInput) bgInput.value = currentTheme.bgColor;
   if (fontSizeSlider) fontSizeSlider.value = currentTheme.fontSize;
   if (fontSizeVal) fontSizeVal.textContent = currentTheme.fontSize + 'px';
+  if (fontFamilySelect) fontFamilySelect.value = currentTheme.fontFamily;
 
   accentInput?.addEventListener('input', function() {
-    applyTheme({ accent: this.value, bgColor: bgInput.value, fontSize: Number(fontSizeSlider.value) });
+    applyTheme({ accent: this.value, bgColor: bgInput.value, fontSize: Number(fontSizeSlider.value), fontFamily: currentFont() });
   });
   bgInput?.addEventListener('input', function() {
-    applyTheme({ accent: accentInput.value, bgColor: this.value, fontSize: Number(fontSizeSlider.value) });
+    applyTheme({ accent: accentInput.value, bgColor: this.value, fontSize: Number(fontSizeSlider.value), fontFamily: currentFont() });
   });
   fontSizeSlider?.addEventListener('input', function() {
     if (fontSizeVal) fontSizeVal.textContent = this.value + 'px';
-    applyTheme({ accent: accentInput.value, bgColor: bgInput.value, fontSize: Number(this.value) });
+    applyTheme({ accent: accentInput.value, bgColor: bgInput.value, fontSize: Number(this.value), fontFamily: currentFont() });
+  });
+  fontFamilySelect?.addEventListener('change', function() {
+    applyTheme({ accent: accentInput.value, bgColor: bgInput.value, fontSize: Number(fontSizeSlider.value), fontFamily: this.value });
   });
 
   document.querySelectorAll('.theme-preset').forEach(function(btn) {
@@ -99,12 +105,12 @@
       var bg = this.getAttribute('data-bg');
       accentInput.value = accent;
       bgInput.value = bg;
-      applyTheme({ accent: accent, bgColor: bg, fontSize: Number(fontSizeSlider.value) });
+      applyTheme({ accent: accent, bgColor: bg, fontSize: Number(fontSizeSlider.value), fontFamily: currentFont() });
     });
   });
 
   document.getElementById('saveThemeBtn')?.addEventListener('click', async function() {
-    await saveTheme({ accent: accentInput.value, bgColor: bgInput.value, fontSize: Number(fontSizeSlider.value) });
+    await saveTheme({ accent: accentInput.value, bgColor: bgInput.value, fontSize: Number(fontSizeSlider.value), fontFamily: currentFont() });
     showSuccess(null, '테마가 저장되었습니다.');
   });
 
