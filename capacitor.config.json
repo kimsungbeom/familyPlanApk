@@ -2,6 +2,7 @@
   "appId": "com.familyplan.app",
   "appName": "FAMILY PLAN",
   "webDir": "www",
+  "loggingBehavior": "none",
   "server": {
     "hostname": "localhost",
     "androidScheme": "https"
