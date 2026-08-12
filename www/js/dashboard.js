@@ -426,12 +426,17 @@
         var wd = getWeekDates(currentDate);
         fromDate = new Date(wd[0] + 'T00:00:00');
         break;
-      case 'month': fromDate = new Date(currentDate); fromDate.setDate(fromDate.getDate() - 30); break;
+      case 'month':
+        var cy = currentDate.getFullYear(), cm = currentDate.getMonth();
+        fromDate = new Date(cy, cm, 1);
+        break;
       case 'year': fromDate = new Date(currentDate); fromDate.setDate(fromDate.getDate() - 365); break;
       default: fromDate = new Date(0); break;
     }
     const fromStr = localDateStr(fromDate);
-    var toDateStr = currentView === 'week' ? getWeekDates(currentDate)[6] : (currentView === 'day' ? localDateStr(currentDate) : localDateStr(today));
+    var toDateStr = currentView === 'week' ? getWeekDates(currentDate)[6] :
+      currentView === 'month' ? localDateStr(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)) :
+      (currentView === 'day' ? localDateStr(currentDate) : localDateStr(today));
     schedules = schedules.filter(s => s.from.substring(0,8) >= fromStr.replace(/-/g,'') && s.from.substring(0,8) <= toDateStr.replace(/-/g,''));
     progressSection.innerHTML = '';
     Object.values(chartInstances).forEach(c => c.destroy());
