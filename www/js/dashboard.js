@@ -422,14 +422,17 @@
     let fromDate;
     switch (currentView) {
       case 'day': fromDate = currentDate; break;
-      case 'week': fromDate = new Date(currentDate); fromDate.setDate(fromDate.getDate() - 7); break;
+      case 'week':
+        var wd = getWeekDates(currentDate);
+        fromDate = new Date(wd[0] + 'T00:00:00');
+        break;
       case 'month': fromDate = new Date(currentDate); fromDate.setDate(fromDate.getDate() - 30); break;
       case 'year': fromDate = new Date(currentDate); fromDate.setDate(fromDate.getDate() - 365); break;
       default: fromDate = new Date(0); break;
     }
     const fromStr = localDateStr(fromDate);
-    const toStr = localDateStr(currentView === 'day' ? currentDate : today);
-    schedules = schedules.filter(s => s.from.substring(0,8) >= fromStr.replace(/-/g,'') && s.from.substring(0,8) <= toStr.replace(/-/g,''));
+    var toDateStr = currentView === 'week' ? getWeekDates(currentDate)[6] : (currentView === 'day' ? localDateStr(currentDate) : localDateStr(today));
+    schedules = schedules.filter(s => s.from.substring(0,8) >= fromStr.replace(/-/g,'') && s.from.substring(0,8) <= toDateStr.replace(/-/g,''));
     progressSection.innerHTML = '';
     Object.values(chartInstances).forEach(c => c.destroy());
     chartInstances = {};
