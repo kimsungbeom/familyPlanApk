@@ -2,13 +2,12 @@
 // schedules INSERT → Edge Function → FCM push notification
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get('Origin') || '*';
+  const origin = req.headers.get('Origin') || '';
 
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
       }
@@ -47,7 +46,7 @@ Deno.serve(async (req) => {
     try {
       sa = JSON.parse(saKey);
     } catch (e) {
-      return new Response(JSON.stringify({ error: 'sa_key parse failed', msg: e.message, keyStart: saKey.substring(0, 50) }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
+      return new Response(JSON.stringify({ error: 'internal_error' }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
     }
 
     const jwtHeader = { alg: 'RS256', typ: 'JWT' };
@@ -74,7 +73,7 @@ Deno.serve(async (req) => {
 
     const pem = sa.private_key;
     if (!pem || !pem.startsWith('-----BEGIN PRIVATE KEY-----')) {
-      return new Response(JSON.stringify({ error: 'invalid private_key', pemStart: pem ? pem.substring(0, 50) : 'undefined' }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
+      return new Response(JSON.stringify({ error: 'internal_error' }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
     }
     const pemHeader = '-----BEGIN PRIVATE KEY-----';
     const pemFooter = '-----END PRIVATE KEY-----';
@@ -105,7 +104,7 @@ Deno.serve(async (req) => {
     const tokenData = await tokenResp.json();
     const accessToken = tokenData.access_token;
     if (!accessToken) {
-      return new Response(JSON.stringify({ error: 'oauth failed', oauthResponse: tokenData }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
+      return new Response(JSON.stringify({ error: 'internal_error' }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
     }
 
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
@@ -137,6 +136,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ sent: true, to: record.target_user_id, title: record.title, fcmStatus: fcmRes.status, fcmName: fcmBody.name }), { status: 200, headers: { 'Access-Control-Allow-Origin': origin } });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message, stack: e.stack, name: e.name }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
+    console.error('send-push error:', e);
+    return new Response(JSON.stringify({ error: 'internal_error' }), { status: 500, headers: { 'Access-Control-Allow-Origin': origin } });
   }
 });

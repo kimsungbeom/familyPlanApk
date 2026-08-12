@@ -764,7 +764,7 @@
     if (editId) {
       await sb.from('schedules').update(row).eq('schedule_id', editId);
     } else {
-      function uuid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c=='x'?r:(r&0x3|0x8)).toString(16); }); }
+      function uuid() { return crypto.randomUUID(); }
       row.schedule_id = uuid();
       row.family_id = currentFamilyId;
       row.created_by = currentUserId;
