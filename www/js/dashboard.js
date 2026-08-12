@@ -453,9 +453,9 @@
 
     const names = personData.map(p => p.name);
     const periodLabel = currentView === 'day' ? localDateStr(currentDate) :
-      currentView === 'week' ? `${fromStr} ~ ${toStr}` :
-      currentView === 'month' ? `${fromStr} ~ ${toStr}` :
-      `${fromStr} ~ ${toStr}`;
+      currentView === 'week' ? `${fromStr} ~ ${toDateStr}` :
+      currentView === 'month' ? `${fromStr} ~ ${toDateStr}` :
+      `${fromStr} ~ ${toDateStr}`;
     progressSection.innerHTML = `<div class="progress-card" style="width:100%;max-width:600px;margin:0 auto"><div style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:8px">${periodLabel} 통계</div><canvas id="chart-bar"></canvas></div>`;
     const ctx = document.getElementById('chart-bar');
     if (ctx) {
