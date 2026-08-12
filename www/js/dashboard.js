@@ -433,12 +433,13 @@
         var cy = currentDate.getFullYear(), cm = currentDate.getMonth();
         fromDate = new Date(cy, cm, 1);
         break;
-      case 'year': fromDate = new Date(currentDate); fromDate.setDate(fromDate.getDate() - 365); break;
+      case 'year': fromDate = new Date(currentDate.getFullYear(), 0, 1); break;
       default: fromDate = new Date(0); break;
     }
     const fromStr = localDateStr(fromDate);
     var toDateStr = currentView === 'week' ? getWeekDates(currentDate)[6] :
       currentView === 'month' ? localDateStr(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)) :
+      currentView === 'year' ? localDateStr(new Date(currentDate.getFullYear(), 11, 31)) :
       (currentView === 'day' ? localDateStr(currentDate) : localDateStr(today));
     schedules = schedules.filter(s => s.from.substring(0,8) >= fromStr.replace(/-/g,'') && s.from.substring(0,8) <= toDateStr.replace(/-/g,''));
     progressSection.innerHTML = '';
