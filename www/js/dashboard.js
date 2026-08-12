@@ -838,7 +838,7 @@
     let html = '<div class="year-grid">';
     for (let m = 0; m < 12; m++) {
       const ms = `${year}-${String(m+1).padStart(2,'0')}`;
-      const cnt = allSchedules.filter(s => s.date.startsWith(ms)).length;
+      const cnt = allSchedules.filter(s => s.from.startsWith(ms.replace(/-/g,''))).length;
       html += `<div class="year-month-card" data-month="${m+1}"><div class="month-name">${m+1}월</div><div class="month-count">${cnt}건</div></div>`;
     }
     html += '</div>'; container.innerHTML = html;
