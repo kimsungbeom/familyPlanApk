@@ -100,9 +100,9 @@
       const list = document.getElementById('memberList');
       const toggleBtn = document.getElementById('toggleFamilyBtn');
       if (list.style.display === 'none') {
-        list.style.display = 'flex'; toggleBtn.textContent = '접기';
+        list.style.display = 'flex'; toggleBtn.textContent = t('familyPanel.hide');
       } else {
-        list.style.display = 'none'; toggleBtn.textContent = '펼치기';
+        list.style.display = 'none'; toggleBtn.textContent = t('familyPanel.toggle');
       }
     });
 
@@ -202,7 +202,7 @@
         </div></div>`;
     }).join('');
     list.style.display = 'none';
-    document.getElementById('toggleFamilyBtn').textContent = '펼치기';
+    document.getElementById('toggleFamilyBtn').textContent = t('familyPanel.toggle');
 
     list.querySelectorAll('.delegate-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -310,7 +310,7 @@
   function renderScheduleList() {
     scheduleListEl.innerHTML = '';
     emptyState.style.display = 'none';
-    if (allSchedules.length === 0) { emptyState.style.display = 'block'; return; }
+    if (allSchedules.length === 0) { emptyState.style.display = 'block'; emptyState.innerHTML = '<p>' + t('emptyState.noSchedule') + '</p><p style=\"font-size:var(--font-size-sm)\">' + t('emptyState.addHint') + '</p>'; return; }
     allSchedules.sort((a, b) => a.from.localeCompare(b.from));
     allSchedules.forEach(s => {
       const targetMember = members.find(m => m.id === s.targetUserId);
@@ -474,7 +474,7 @@
         data: {
           labels: names,
           datasets: [
-            { label: '완료', data: personData.map(p => p.completed), backgroundColor: accent, borderRadius: 0 },
+            { label: t('graph.completed'), data: personData.map(p => p.completed), backgroundColor: accent, borderRadius: 0 },
             { label: '진행중', data: personData.map(p => p.inProgress), backgroundColor: '#3498db', borderRadius: 0 },
             { label: '미시작', data: personData.map(p => p.notStarted), backgroundColor: '#e0e0e0', borderRadius: 0 }
           ]
