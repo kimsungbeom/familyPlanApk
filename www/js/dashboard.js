@@ -82,6 +82,7 @@
 
     document.getElementById('todayBadge').addEventListener('click', () => {
       currentView = 'day'; currentDate = new Date();
+      filterStatus.value = '';
       document.querySelectorAll('#viewTabs button').forEach(b => b.classList.remove('active'));
       document.querySelector('#viewTabs button[data-view="day"]').classList.add('active');
       loadAll();
@@ -89,6 +90,7 @@
 
     document.getElementById('weekBadge').addEventListener('click', () => {
       currentView = 'week'; currentDate = new Date();
+      filterStatus.value = '';
       document.querySelectorAll('#viewTabs button').forEach(b => b.classList.remove('active'));
       document.querySelector('#viewTabs button[data-view="week"]').classList.add('active');
       loadAll();
