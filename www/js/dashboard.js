@@ -823,7 +823,7 @@
     for (let i = 0; i < startPad; i++) html += '<div class="calendar-day other-month"></div>';
     for (let d = 1; d <= totalDays; d++) {
       const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isToday = ds === today, hasSch = allSchedules.some(s => s.from.startsWith(ds.replace(/-/g,'')));
+      const isToday = ds === today, hasSch = allSchedules.some(s => s.from.startsWith(ds.replace(/-/g,'')) || s.date === ds);
       const isSel = ds === localDateStr(currentDate);
       html += `<div class="calendar-day${isToday?' today':''}${hasSch?' has-schedule':''}${isSel?' selected':''}" data-date="${ds}">${d}</div>`;
     }
