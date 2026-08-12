@@ -108,6 +108,7 @@
 
     setupSettingsModal();
     registerFCM(currentUserId);
+    document.addEventListener('pushReceived', function() { loadAll(); });
   }
 
   async function loadFamilyData() {

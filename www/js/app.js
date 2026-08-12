@@ -124,6 +124,7 @@ async function registerFCM(userId) {
       }
       el.textContent = (title + ': ' + body).trim();
       setTimeout(function() { if (el.parentNode) el.remove(); }, 5000);
+      document.dispatchEvent(new CustomEvent('pushReceived', { detail: notif }));
     });
   } catch(e) {}
 }
