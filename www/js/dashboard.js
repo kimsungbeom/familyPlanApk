@@ -43,9 +43,9 @@
       hdr.innerHTML = `<div class="header" style="margin-bottom:0">
         <h1></h1>
         <div class="header-nav">
-          <a href="dashboard.html" style="font-weight:700;color:var(--color-accent)">메인</a>
-          <a href="timetable.html">시간표</a>
-          <a href="mypage.html">MY</a>
+          <a href="dashboard.html" style="font-weight:700;color:var(--color-accent)">${t('header.main')}</a>
+          <a href="timetable.html">${t('header.timetable')}</a>
+          <a href="mypage.html">${t('header.my')}</a>
           <button id="logoutBtn">LogOut</button>
         </div></div>`;
       hdr.querySelector('.header h1').textContent = groupName;

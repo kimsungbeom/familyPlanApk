@@ -11,9 +11,9 @@
     header.innerHTML = `<div class="header" style="margin-bottom:0">
       <h1></h1>
         <div class="header-nav">
-          <a href="dashboard.html">메인</a>
-          <a href="timetable.html">시간표</a>
-          <a href="mypage.html" style="font-weight:700;color:var(--color-accent)">MY</a>
+          <a href="dashboard.html">${t('header.main')}</a>
+          <a href="timetable.html">${t('header.timetable')}</a>
+          <a href="mypage.html" style="font-weight:700;color:var(--color-accent)">${t('header.my')}</a>
         <button id="mypageLogoutBtn">LogOut</button>
       </div></div>`;
     header.querySelector('.header h1').textContent = groupName;
@@ -75,6 +75,15 @@
   }
   // ─── THEME ─────────────────────────────────
   var currentTheme = await loadTheme();
+  var langSelect = document.getElementById('themeLanguage');
+  if (langSelect) {
+    langSelect.value = await getLanguage();
+    langSelect.addEventListener('change', function() {
+      if (confirm('언어를 변경하면 페이지가 새로고침됩니다.')) {
+        setLanguage(this.value);
+      }
+    });
+  }
   var accentInput = document.getElementById('themeAccent');
   var bgInput = document.getElementById('themeBgColor');
   var fontSizeSlider = document.getElementById('themeFontSize');

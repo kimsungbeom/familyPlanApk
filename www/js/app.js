@@ -3,6 +3,85 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ─── I18N ───────────────────────────────────
+const I18N = {
+  ko: {
+    appName: 'FAMILY PLAN',
+    alert: '알림',
+    save: '저장',
+    cancel: '취소',
+    logout: 'LogOut',
+    errorNetwork: '네트워크 오류',
+    pushSchedule: '{0}님 일정',
+    pushRead: '{0}님이 읽음',
+    pushReadDetail: '"{0}" 확인함',
+    header: { main: '메인', timetable: '시간표', my: 'MY' },
+    dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+    calendar: { day: '일', week: '주', month: '월', year: '년' },
+    filter: { search: '일정 검색 (제목, 요청자, 소요시간)', allStatus: '전체 상태', done: '완료', pending: '미완료', from: '시작일', to: '종료일', allMembers: '모두' },
+    schedule: { add: '+ 추가', save: '저장', saving: '저장 중...', edit: '일정 수정', new: '일정 추가', editBtn: '수정', deleteBtn: '삭제', title: '일정명', requester: '요청자', target: '대상자', progress: '진행률', recurring: '반복 일정', noRecur: '없음', daily: '매일', weekly: '매주', monthly: '매월', yearly: '매년', recurEnd: '반복 종료일', confirmDelete: '일정을 삭제하시겠습니까?' },
+    settings: { group: '그룹 설정', groupName: '그룹명', namePlaceholder: '가족 그룹 이름 (예: 김씨 가족)' },
+    familyPanel: { title: '가족 구성원 관리', joinKey: '참여 키', share: '가족원 초대 시 공유', toggle: '펼치기', hide: '접기', creator: '그룹장', kickRight: '추방권한' },
+    alertBadge: { today: '오늘의 일정', thisWeek: '이번주 일정' },
+    mypage: { title: '마이페이지', changePass: '비밀번호 변경', currentPass: '현재 비밀번호', newPass: '새 비밀번호', changePassBtn: '비밀번호 변경', deleteAccount: '회원 탈퇴', deleteWarn: '탈퇴 시 모든 데이터가 삭제됩니다. 그룹 생성자는 탈퇴할 수 없습니다.', theme: '커스텀 테마', themePreset: '프리셋', accent: '강조색', bgColor: '배경색', font: '글꼴', fontSize: '폰트 크기', saveTheme: '테마 저장', themeSaved: '테마가 저장되었습니다.', errorAll: '모두 입력하세요.', errorPassLen: '새 비밀번호는 4자 이상이어야 합니다.', passMismatch: '현재 비밀번호가 일치하지 않습니다.', passChanged: '비밀번호가 변경되었습니다.' },
+    groupSwitcher: { newGroup: '새 그룹 만들기', joinGroup: '그룹 참여하기', createTitle: '새 그룹 만들기', joinTitle: '그룹 참여하기', groupNameInput: '가족 그룹 이름', joinKeyInput: '4자리 키 입력', defaultName: '우리가족', invalidKey: '존재하지 않는 그룹 키입니다.', alreadyJoined: '이미 가입된 그룹입니다.' }
+  },
+  en: {
+    appName: 'FAMILY PLAN',
+    alert: 'Notice',
+    save: 'Save',
+    cancel: 'Cancel',
+    logout: 'LogOut',
+    errorNetwork: 'Network error',
+    pushSchedule: '{0}\'s schedule',
+    pushRead: '{0} read it',
+    pushReadDetail: '"{0}" confirmed',
+    header: { main: 'Home', timetable: 'Timetable', my: 'MY' },
+    dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    calendar: { day: 'Day', week: 'Week', month: 'Month', year: 'Year' },
+    filter: { search: 'Search (title, requester)', allStatus: 'All', done: 'Done', pending: 'Pending', from: 'From', to: 'To', allMembers: 'All' },
+    schedule: { add: '+ Add', save: 'Save', saving: 'Saving...', edit: 'Edit Schedule', new: 'Add Schedule', editBtn: 'Edit', deleteBtn: 'Delete', title: 'Title', requester: 'Requester', target: 'Target', progress: 'Progress', recurring: 'Recurring', noRecur: 'None', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly', recurEnd: 'End Date', confirmDelete: 'Delete this schedule?' },
+    settings: { group: 'Group Settings', groupName: 'Group Name', namePlaceholder: 'Group name (e.g. Kim Family)' },
+    familyPanel: { title: 'Members', joinKey: 'Join Key', share: 'Share with family', toggle: 'Expand', hide: 'Collapse', creator: 'Admin', kickRight: 'Kick' },
+    alertBadge: { today: 'Today', thisWeek: 'This Week' },
+    mypage: { title: 'My Page', changePass: 'Change Password', currentPass: 'Current Password', newPass: 'New Password', changePassBtn: 'Change', deleteAccount: 'Delete Account', deleteWarn: 'All data will be deleted. Group creator cannot delete.', theme: 'Custom Theme', themePreset: 'Presets', accent: 'Accent', bgColor: 'Background', font: 'Font', fontSize: 'Font Size', saveTheme: 'Save Theme', themeSaved: 'Theme saved.', errorAll: 'Please fill in all fields.', errorPassLen: 'Password must be at least 4 characters.', passMismatch: 'Current password is incorrect.', passChanged: 'Password changed.' },
+    groupSwitcher: { newGroup: '+ New Group', joinGroup: '+ Join Group', createTitle: 'Create Group', joinTitle: 'Join Group', groupNameInput: 'Group Name', joinKeyInput: 'Enter 4-digit key', defaultName: 'My Family', invalidKey: 'Invalid group key.', alreadyJoined: 'Already a member.' }
+  }
+};
+
+function t(key, params) {
+  var keys = key.split('.');
+  var val = (getLanguage() === 'en' ? I18N.en : I18N.ko);
+  for (var i = 0; i < keys.length; i++) val = val && val[keys[i]];
+  if (typeof val !== 'string') return key;
+  if (params) {
+    for (var k in params) val = val.replace('{' + k + '}', params[k]);
+  }
+  return val;
+}
+
+var LANG_DAY = I18N.ko.dayNames;
+
+async function getLanguage() {
+  try {
+    var v = await Capacitor.Plugins.Preferences.get({ key: 'fp_lang' });
+    if (v && v.value) return v.value;
+  } catch {}
+  return localStorage.getItem('fp_lang') || 'ko';
+}
+
+async function setLanguage(lang) {
+  localStorage.setItem('fp_lang', lang);
+  try { await Capacitor.Plugins.Preferences.set({ key: 'fp_lang', value: lang }); } catch {}
+  window.location.reload();
+}
+
+(async function initLang() {
+  var lang = await getLanguage();
+  LANG_DAY = (I18N[lang] && I18N[lang].dayNames) || I18N.ko.dayNames;
+})();
+// ──────────────────────────────────────────
+
 async function saveSession(user) {
   var data = JSON.stringify(user);
   localStorage.setItem('fp_session', data);
@@ -112,7 +191,7 @@ async function registerFCM(userId) {
     });
     PN.addListener('registrationError', function(err) {});
     PN.addListener('pushNotificationReceived', function(notif) {
-      var title = notif.title || '알림';
+      var title = notif.title || t('alert');
       var body = notif.body || '';
       var el = document.getElementById('pushBanner');
       if (!el) {
