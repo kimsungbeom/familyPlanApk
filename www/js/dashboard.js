@@ -301,8 +301,7 @@
       } else {
         viewFiltered = allSchedules;
       }
-      const excludedIncomplete = allSchedules.filter(s => !s.completed && s.from.substring(0,8) <= dateStr.replace(/-/g,'') && !viewFiltered.includes(s));
-      allSchedules = [...viewFiltered, ...excludedIncomplete];
+      allSchedules = viewFiltered;
     }
     renderScheduleList();
   }
