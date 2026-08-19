@@ -64,6 +64,7 @@
       const btn = e.target.closest('button[data-view]');
       if (!btn) return;
       currentView = btn.dataset.view;
+      if (currentView === 'year') filterStatus.value = '';
       document.querySelectorAll('#viewTabs button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       loadAll();
@@ -858,6 +859,16 @@
     }
     html += '</div>'; container.innerHTML = html;
     navLabel.textContent = `${year}년`;
+    container.querySelectorAll('.year-month-card').forEach(el => {
+      el.addEventListener('click', () => {
+        currentView = 'month';
+        currentDate = new Date(year, parseInt(el.dataset.month) - 1, 1);
+        filterStatus.value = '';
+        document.querySelectorAll('#viewTabs button').forEach(b => b.classList.remove('active'));
+        document.querySelector('#viewTabs button[data-view="month"]').classList.add('active');
+        loadAll();
+      });
+    });
   }
 
   function updateGroupName(name) {
