@@ -82,7 +82,7 @@
 
     document.getElementById('todayBadge').addEventListener('click', () => {
       currentView = 'day'; currentDate = new Date();
-      filterStatus.value = '';
+      filterStatus.value = 'pending';
       document.querySelectorAll('#viewTabs button').forEach(b => b.classList.remove('active'));
       document.querySelector('#viewTabs button[data-view="day"]').classList.add('active');
       loadAll();
@@ -90,7 +90,7 @@
 
     document.getElementById('weekBadge').addEventListener('click', () => {
       currentView = 'week'; currentDate = new Date();
-      filterStatus.value = '';
+      filterStatus.value = 'pending';
       document.querySelectorAll('#viewTabs button').forEach(b => b.classList.remove('active'));
       document.querySelector('#viewTabs button[data-view="week"]').classList.add('active');
       loadAll();
@@ -491,15 +491,19 @@
 
   async function loadAlerts() {
     if (!currentFamilyId) return;
+    const selectedUsers = Array.from(selectedTargets);
+    let query = sb.from('schedules').select('scheduled_from, completed, target_user_id').eq('family_id', currentFamilyId);
+    if (selectedUsers.length > 0 && selectedUsers.length < members.length) {
+      query = query.in('target_user_id', selectedUsers);
+    }
+    const { data } = await query;
+    const incomplete = (data || []).filter(s => !s.completed);
     const today = getToday().replace(/-/g, '');
-    const { data: todayData } = await sb.from('schedules').select('schedule_id').eq('family_id', currentFamilyId).gte('scheduled_from', today+'0000').lte('scheduled_from', today+'2359');
-    document.getElementById('todayCount').textContent = (todayData || []).length;
-
     const weekDates = getWeekDates(new Date());
-    const wFrom = weekDates[0].replace(/-/g,'')+'0000';
-    const wTo = weekDates[6].replace(/-/g,'')+'2359';
-    const { data: weekData } = await sb.from('schedules').select('schedule_id').eq('family_id', currentFamilyId).gte('scheduled_from', wFrom).lte('scheduled_from', wTo);
-    document.getElementById('weekCount').textContent = (weekData || []).length;
+    const todayCount = incomplete.filter(s => (s.scheduled_from || '').startsWith(today)).length;
+    const weekCount = incomplete.filter(s => weekDates.some(wd => (s.scheduled_from || '').startsWith(wd.replace(/-/g,'')))).length;
+    document.getElementById('todayCount').textContent = todayCount;
+    document.getElementById('weekCount').textContent = weekCount;
   }
 
   function setupInlineAdd() {
